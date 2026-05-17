@@ -3,31 +3,67 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Chernyakov Coaching — Personal Development & Leadership Coaching</title>
+  <title>Chernyakov Coaching — Personal Development &amp; Leadership Coaching</title>
   <meta name="description" content="One-on-one coaching for personal development and group workshops for business leaders. Helping individuals and teams grow with clarity, focus, and intent." />
+  <meta name="author" content="Michael Chernyakov" />
   <meta name="theme-color" content="#2f4a3a" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+Pro:wght@400;600&display=swap" />
+  <link rel="canonical" href="https://chernyakov-coaching.com/" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Chernyakov Coaching — Personal Development &amp; Leadership Coaching" />
+  <meta property="og:description" content="One-on-one coaching for personal development and group workshops for business leaders." />
+  <meta property="og:url" content="https://chernyakov-coaching.com/" />
+  <meta property="og:site_name" content="Chernyakov Coaching" />
+  <meta property="og:locale" content="en_US" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Chernyakov Coaching — Personal Development &amp; Leadership Coaching" />
+  <meta name="twitter:description" content="One-on-one coaching for personal development and group workshops for business leaders." />
+
+  <link rel="preload" as="font" type="font/woff2" href="fonts/inter-latin.woff2" crossorigin />
   <link rel="stylesheet" href="styles.css" />
+  <script src="main.js" defer></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ProfessionalService",
+    "name": "Chernyakov Coaching",
+    "description": "One-on-one coaching for personal development and group workshops for business leaders.",
+    "url": "https://chernyakov-coaching.com/",
+    "email": "michael@chernyakov-coaching.com",
+    "founder": {
+      "@type": "Person",
+      "name": "Michael Chernyakov"
+    },
+    "areaServed": "Worldwide",
+    "serviceType": [
+      "Personal development coaching",
+      "Leadership coaching",
+      "Team workshops"
+    ]
+  }
+  </script>
 </head>
 <body>
+
+  <a class="skip-link" href="#main">Skip to content</a>
 
   <header class="site-header">
     <div class="container nav">
       <a href="index.html" class="brand">Chernyakov<span>.</span>Coaching</a>
       <nav class="nav-links" aria-label="Primary">
-        <a href="index.html" class="active">Home</a>
+        <a href="index.html" class="active" aria-current="page">Home</a>
         <a href="about.html">About me</a>
-        <a class="nav-cta" href="https://calendar.app.google/MXdrHfJUWrtYFRPc9" target="_blank" rel="noopener">Book a call</a>
+        <a class="nav-cta" data-link="booking" href="https://calendar.app.google/MXdrHfJUWrtYFRPc9" target="_blank" rel="noopener noreferrer">Book a call</a>
       </nav>
     </div>
   </header>
 
-  <main>
+  <main id="main">
 
     <!-- Hero -->
-    <section class="hero" style="border-top:none;">
+    <section class="hero">
       <div class="container">
         <span class="eyebrow">Personal development &amp; leadership coaching</span>
         <h1>Clear thinking. Better decisions. Lasting growth.</h1>
@@ -37,7 +73,7 @@
           in life and in work.
         </p>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="https://calendar.app.google/MXdrHfJUWrtYFRPc9" target="_blank" rel="noopener">Book an intro call</a>
+          <a class="btn btn-primary" data-link="booking" href="https://calendar.app.google/MXdrHfJUWrtYFRPc9" target="_blank" rel="noopener noreferrer">Book an intro call</a>
           <a class="btn btn-secondary" href="#services">See how I help</a>
         </div>
       </div>
@@ -63,7 +99,7 @@
               <li>Building focus, energy and follow-through</li>
               <li>Structured 3- and 6-month engagements</li>
             </ul>
-            <a class="btn btn-secondary" href="https://calendar.app.google/MXdrHfJUWrtYFRPc9" target="_blank" rel="noopener">Book an intro call</a>
+            <a class="btn btn-secondary" data-link="booking" href="https://calendar.app.google/MXdrHfJUWrtYFRPc9" target="_blank" rel="noopener noreferrer">Book an intro call</a>
           </article>
 
           <article class="service">
@@ -76,7 +112,7 @@
               <li>Communication, feedback &amp; trust</li>
               <li>Half-day, full-day or multi-session formats</li>
             </ul>
-            <a class="btn btn-secondary" href="mailto:michael@chernyakov-coaching.com?subject=Group%20workshop%20inquiry">Inquire about workshops</a>
+            <a class="btn btn-secondary" data-link="email" data-subject="Group workshop inquiry" href="mailto:michael@chernyakov-coaching.com?subject=Group%20workshop%20inquiry">Inquire about workshops</a>
           </article>
         </div>
       </div>
@@ -102,7 +138,7 @@
       <div class="container">
         <h2>Not sure where to start?</h2>
         <p>The intro call is free and pressure-free. Bring a question, a challenge, or just curiosity — and we'll see if working together makes sense.</p>
-        <a class="btn btn-primary" href="https://calendar.app.google/MXdrHfJUWrtYFRPc9" target="_blank" rel="noopener">Book a free intro call</a>
+        <a class="btn btn-primary" data-link="booking" href="https://calendar.app.google/MXdrHfJUWrtYFRPc9" target="_blank" rel="noopener noreferrer">Book a free intro call</a>
       </div>
     </section>
 
@@ -110,15 +146,12 @@
 
   <footer class="site-footer">
     <div class="container footer-row">
-      <div>© <span id="year"></span> Chernyakov Coaching</div>
+      <div>© <span id="year">2026</span> Chernyakov Coaching</div>
       <div>
-        <a href="mailto:michael@chernyakov-coaching.com">michael@chernyakov-coaching.com</a>
+        <a data-link="email" href="mailto:michael@chernyakov-coaching.com">michael@chernyakov-coaching.com</a>
       </div>
     </div>
   </footer>
 
-  <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
-  </script>
 </body>
 </html>
