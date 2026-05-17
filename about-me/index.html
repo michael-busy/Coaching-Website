@@ -24,10 +24,11 @@
   <meta name="twitter:description" content="Product Lead at Solaris SE and coach for product managers." />
   <meta name="twitter:image" content="https://chernyakov-coaching.com/michael-coaching-class.jpg" />
 
-  <link rel="preload" as="font" type="font/woff2" href="../fonts/inter-latin.woff2" crossorigin />
   <link rel="preload" as="image" href="../michael-coaching-class.jpg" fetchpriority="high" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+Pro:wght@400;600&display=swap" />
   <link rel="stylesheet" href="../styles.css" />
-  <script src="../main.js" defer></script>
 
   <script type="application/ld+json">
   {
@@ -290,5 +291,8 @@
     </div>
   </footer>
 
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
