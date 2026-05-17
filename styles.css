@@ -284,6 +284,18 @@ section {
 .footer-row a { color: var(--ink-soft); }
 .footer-row a:hover { color: var(--ink); }
 
+/* ---------- Split hero (home + about) ---------- */
+.hero-split {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 56px;
+  align-items: center;
+}
+@media (max-width: 760px) {
+  .hero-split { grid-template-columns: 1fr; gap: 32px; }
+  .hero-split .hero-photo { order: -1; }
+}
+
 /* ---------- About page: hero with photo ---------- */
 .hero-about {
   padding: 96px 0 56px;
@@ -306,9 +318,18 @@ section {
   display: block;
   box-shadow: 0 12px 32px rgba(0,0,0,.08);
 }
+/* email line under the buttons */
+.email-line {
+  margin: 14px 0 0;
+  font-size: .9rem;
+}
+.email-line a { color: var(--ink-soft); }
+.email-line a:hover { color: var(--accent); }
+
 @media (max-width: 760px) {
   .hero-about { padding: 56px 0 32px; }
   .hero-about-grid { grid-template-columns: 1fr; gap: 32px; }
+  .hero-about-grid .hero-photo { order: -1; }  /* photo first on mobile */
   .hero-photo img { aspect-ratio: 4/3; max-height: 460px; }
 }
 
@@ -322,12 +343,14 @@ section {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 24px;
+  padding: 28px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.04);
   transition: transform .2s ease, box-shadow .2s ease;
 }
 .experience-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,.04);
+  transform: translateY(-3px);
+  box-shadow: 0 14px 28px rgba(0,0,0,.08);
+  border-color: var(--accent-soft);
 }
 .experience-card h3 {
   font-size: 1.05rem;
