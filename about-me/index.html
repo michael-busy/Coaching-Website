@@ -5,28 +5,72 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>About — Chernyakov Coaching</title>
   <meta name="description" content="Michael Chernyakov — Product Lead at Solaris SE and coach for product managers. Banking customer experience and personal coaching for product professionals." />
+  <meta name="author" content="Michael Chernyakov" />
   <meta name="theme-color" content="#2f4a3a" />
   <link rel="canonical" href="https://chernyakov-coaching.com/about-me/" />
   <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+Pro:wght@400;600&display=swap" />
+
+  <meta property="og:type" content="profile" />
+  <meta property="og:title" content="About Michael Chernyakov — Chernyakov Coaching" />
+  <meta property="og:description" content="Product Lead at Solaris SE and coach for product managers. Banking customer experience and personal coaching for product professionals." />
+  <meta property="og:url" content="https://chernyakov-coaching.com/about-me/" />
+  <meta property="og:image" content="https://chernyakov-coaching.com/michael-coaching-class.jpg" />
+  <meta property="og:site_name" content="Chernyakov Coaching" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="profile:first_name" content="Michael" />
+  <meta property="profile:last_name" content="Chernyakov" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="About Michael Chernyakov — Chernyakov Coaching" />
+  <meta name="twitter:description" content="Product Lead at Solaris SE and coach for product managers." />
+  <meta name="twitter:image" content="https://chernyakov-coaching.com/michael-coaching-class.jpg" />
+
+  <link rel="preload" as="font" type="font/woff2" href="../fonts/inter-latin.woff2" crossorigin />
+  <link rel="preload" as="image" href="../michael-coaching-class.jpg" fetchpriority="high" />
   <link rel="stylesheet" href="../styles.css" />
+  <script src="../main.js" defer></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "name": "Michael Chernyakov",
+    "url": "https://chernyakov-coaching.com/about-me/",
+    "image": "https://chernyakov-coaching.com/michael-coaching-class.jpg",
+    "email": "michael@chernyakov-coaching.com",
+    "jobTitle": "Product Lead — B2C",
+    "worksFor": {
+      "@type": "Organization",
+      "name": "Solaris SE"
+    },
+    "alumniOf": [
+      {
+        "@type": "CollegeOrUniversity",
+        "name": "Technische Hochschule Köln — University of Applied Sciences"
+      },
+      {
+        "@type": "CollegeOrUniversity",
+        "name": "CBS International Business School"
+      }
+    ]
+  }
+  </script>
 </head>
 <body>
+
+  <a class="skip-link" href="#main">Skip to content</a>
 
   <header class="site-header">
     <div class="container nav">
       <a href="../index.html" class="brand">Chernyakov<span>.</span>Coaching</a>
       <nav class="nav-links" aria-label="Primary">
         <a href="../index.html">Home</a>
-        <a href="./" class="active">About me</a>
-        <a class="nav-cta" href="https://calendar.app.google/MXdrHfJUWrtYFRPc9" target="_blank" rel="noopener">Book a call</a>
+        <a href="./" class="active" aria-current="page">About me</a>
+        <a class="nav-cta" data-link="booking" href="https://calendar.app.google/MXdrHfJUWrtYFRPc9" target="_blank" rel="noopener noreferrer">Book a call</a>
       </nav>
     </div>
   </header>
 
-  <main>
+  <main id="main">
 
     <!-- Hero with photo -->
     <section class="hero-about">
@@ -40,16 +84,22 @@
             managers and emerging business leaders on the work itself — managing stakeholders,
             shipping under pressure, growing teams, and building careers that hold up over time.
           </p>
-          <div class="hero-actions" style="margin-top: 24px;">
-            <a class="btn btn-primary" href="https://calendar.app.google/MXdrHfJUWrtYFRPc9" target="_blank" rel="noopener">Book an intro call</a>
-            <a class="btn btn-secondary" href="mailto:michael@chernyakov-coaching.com">Email me</a>
+          <div class="hero-actions mt-sm">
+            <a class="btn btn-primary" data-link="booking" href="https://calendar.app.google/MXdrHfJUWrtYFRPc9" target="_blank" rel="noopener noreferrer">Book an intro call</a>
+            <a class="btn btn-secondary" data-link="email" href="mailto:michael@chernyakov-coaching.com">Email me</a>
           </div>
           <p class="email-line">
-            <a href="mailto:michael@chernyakov-coaching.com">michael@chernyakov-coaching.com</a>
+            <a data-link="email" href="mailto:michael@chernyakov-coaching.com">michael@chernyakov-coaching.com</a>
           </p>
         </div>
         <div class="hero-photo">
-          <img src="../michael-coaching-class.jpg" alt="Michael Chernyakov coaching a class" />
+          <img src="../michael-coaching-class.jpg"
+               alt="Michael Chernyakov coaching a class"
+               width="1600"
+               height="1096"
+               loading="eager"
+               fetchpriority="high"
+               decoding="async" />
         </div>
       </div>
     </section>
@@ -225,7 +275,7 @@
       <div class="container">
         <h2>Curious about coaching?</h2>
         <p>If you're a product manager or business leader navigating a stretch — new role, big launch, team rebuild, career pivot — I'd love to hear about it. The intro call is free.</p>
-        <a class="btn btn-primary" href="https://calendar.app.google/MXdrHfJUWrtYFRPc9" target="_blank" rel="noopener">Book a free intro call</a>
+        <a class="btn btn-primary" data-link="booking" href="https://calendar.app.google/MXdrHfJUWrtYFRPc9" target="_blank" rel="noopener noreferrer">Book a free intro call</a>
       </div>
     </section>
 
@@ -233,15 +283,12 @@
 
   <footer class="site-footer">
     <div class="container footer-row">
-      <div>© <span id="year"></span> Chernyakov Coaching</div>
+      <div>© <span id="year">2026</span> Chernyakov Coaching</div>
       <div>
-        <a href="mailto:michael@chernyakov-coaching.com">michael@chernyakov-coaching.com</a>
+        <a data-link="email" href="mailto:michael@chernyakov-coaching.com">michael@chernyakov-coaching.com</a>
       </div>
     </div>
   </footer>
 
-  <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
-  </script>
 </body>
 </html>
