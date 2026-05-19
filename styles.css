@@ -527,6 +527,204 @@ section {
 .mt-md { margin-top: 32px; }
 .mt-lg { margin-top: 40px; }
 
+/* ---------- Nav dropdown (Offers menu) ---------- */
+.nav-dropdown { position: relative; }
+.nav-dropdown-toggle {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: .95rem;
+  color: var(--ink-soft);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.nav-dropdown-toggle:hover { color: var(--ink); }
+.nav-dropdown-toggle .caret {
+  font-size: .7rem;
+  line-height: 1;
+  transition: transform .2s ease;
+  display: inline-block;
+}
+.nav-dropdown[data-open="true"] .nav-dropdown-toggle .caret {
+  transform: rotate(180deg);
+}
+.nav-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 14px);
+  right: 0;
+  min-width: 260px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 28px rgba(0,0,0,.08);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity .15s ease, transform .15s ease, visibility 0s .15s;
+  z-index: 100;
+}
+.nav-dropdown-menu a {
+  padding: 11px 14px;
+  border-radius: 6px;
+  color: var(--ink);
+  font-size: .95rem;
+}
+.nav-dropdown-menu a:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.nav-dropdown[data-open="true"] .nav-dropdown-menu {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition: opacity .15s ease, transform .15s ease;
+}
+
+/* ---------- Service card actions (Learn more + Book) ---------- */
+.service-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.service-actions .btn {
+  flex: 0 0 auto;
+  padding: 11px 18px;
+  font-size: .9rem;
+}
+
+/* ---------- Comparison table (Coaching vs Mentoring) ---------- */
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.comparison-table th,
+.comparison-table td {
+  padding: 18px 20px;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  font-size: .95rem;
+  vertical-align: top;
+  color: var(--ink-soft);
+}
+.comparison-table tbody tr:last-child th,
+.comparison-table tbody tr:last-child td {
+  border-bottom: none;
+}
+.comparison-table tbody th {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  color: var(--ink);
+  background: var(--accent-soft);
+  width: 22%;
+}
+.comparison-table thead th {
+  background: var(--accent);
+  color: #fff;
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  font-weight: 600;
+}
+@media (max-width: 640px) {
+  .comparison-table th, .comparison-table td {
+    padding: 12px 14px;
+    font-size: .9rem;
+  }
+}
+
+/* ---------- GROW list ---------- */
+.grow-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+}
+.grow-list > li {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 20px;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+}
+.grow-list > li:first-child { border-top: none; padding-top: 4px; }
+.grow-list .grow-label {
+  font-weight: 600;
+  color: var(--accent);
+  font-family: var(--font-sans);
+  font-size: .95rem;
+}
+.grow-list .grow-desc {
+  color: var(--ink-soft);
+  font-size: .95rem;
+}
+@media (max-width: 540px) {
+  .grow-list > li { grid-template-columns: 1fr; gap: 2px; padding: 12px 0; }
+}
+
+/* ---------- Workshop modules ---------- */
+.modules {
+  display: grid;
+  gap: 18px;
+}
+.module {
+  display: grid;
+  grid-template-columns: 68px 1fr;
+  gap: 24px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.04);
+  align-items: start;
+}
+.module-num {
+  font-family: var(--font-serif);
+  font-size: 2.4rem;
+  font-weight: 600;
+  color: var(--accent);
+  line-height: 1;
+}
+.module h3 {
+  font-size: 1.1rem;
+  margin-bottom: 8px;
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
+.module p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: .95rem;
+}
+@media (max-width: 540px) {
+  .module { grid-template-columns: 1fr; padding: 22px; gap: 6px; }
+}
+
+/* ---------- Ethics callout ---------- */
+.ethics-card {
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  padding: 28px 32px;
+}
+.ethics-card h2 { margin-bottom: 12px; }
+.ethics-card p { margin: 0 0 12px; }
+.ethics-card p:last-child { margin-bottom: 0; }
+
 /* ---------- Mobile nav burger ---------- */
 .nav-toggle {
   display: none;
@@ -600,10 +798,53 @@ section {
     font-size: 1.05rem;
     color: var(--ink);
   }
-  .nav-links a:last-child { border-bottom: none; }
+  .nav-links > a:last-child,
+  .nav-links > .nav-dropdown:last-child .nav-dropdown-toggle { border-bottom: none; }
 
   /* Tighten nav-end gap on mobile (only CTA visible there) */
   .nav-end { gap: 0; }
+
+  /* Mobile dropdown: expands inline inside the drawer */
+  .nav-dropdown { width: 100%; }
+  .nav-dropdown-toggle {
+    display: flex;
+    width: 100%;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 1.05rem;
+    color: var(--ink);
+    justify-content: space-between;
+    align-items: center;
+  }
+  .nav-dropdown-menu {
+    position: static;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: none;
+    box-shadow: none;
+    border: none;
+    background: transparent;
+    min-width: 0;
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height .25s ease;
+  }
+  .nav-dropdown[data-open="true"] .nav-dropdown-menu {
+    max-height: 260px;
+  }
+  .nav-dropdown-menu a {
+    padding: 12px 0 12px 16px;
+    border-bottom: 1px solid var(--line);
+    font-size: .95rem;
+    color: var(--ink);
+    border-radius: 0;
+  }
+  .nav-dropdown-menu a:hover {
+    background: transparent;
+    color: var(--accent);
+  }
   .site-header[data-nav-open="true"] .nav-links {
     transform: translateY(0);
     opacity: 1;

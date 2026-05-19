@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Offers — Chernyakov Coaching</title>
+  <meta name="description" content="Coaching offerings — one-on-one coaching and coaching workshops for leadership teams." />
+  <meta name="theme-color" content="#2f4a3a" />
+  <link rel="canonical" href="https://chernyakov-coaching.com/offers/" />
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+Pro:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="../styles.css" />
+</head>
+<body>
+
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container nav">
+      <a href="/" class="brand">Chernyakov<span>.</span>Coaching</a>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="primary-nav">
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+        <span class="nav-toggle-bar"></span>
+      </button>
+      <div class="nav-end">
+        <nav id="primary-nav" class="nav-links" aria-label="Primary">
+          <a href="/">Home</a>
+          <a href="/about-me/">About me</a>
+          <div class="nav-dropdown" data-open="false">
+            <button class="nav-dropdown-toggle" type="button" aria-haspopup="true" aria-expanded="false">
+              Offers <span class="caret" aria-hidden="true">▾</span>
+            </button>
+            <div class="nav-dropdown-menu">
+              <a href="/offers/one-on-one-coaching/">One-on-one coaching</a>
+              <a href="/offers/coaching-for-leaders/">Coaching for leaders</a>
+            </div>
+          </div>
+        </nav>
+        <a class="nav-cta" data-link="booking" href="https://calendar.app.google/MXdrHfJUWrtYFRPc9" target="_blank" rel="noopener noreferrer">Book a call</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+
+    <section class="hero" style="border-top:none;">
+      <div class="container">
+        <span class="eyebrow">Offers</span>
+        <h1>Two ways to work together</h1>
+        <p class="lead">
+          Whether you're an individual ready to grow or a company looking to develop your leaders,
+          the work starts the same way: with honest conversation and a clear plan.
+        </p>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="services">
+          <article class="service">
+            <div class="icon" aria-hidden="true">1:1</div>
+            <h3>One-on-one coaching</h3>
+            <p>Private, structured coaching grounded in the GROW framework and ICF ethical standards. For individuals committed to their growth.</p>
+            <div class="service-actions">
+              <a class="btn btn-primary" href="/offers/one-on-one-coaching/">Learn more</a>
+              <a class="btn btn-secondary" data-link="booking" href="https://calendar.app.google/MXdrHfJUWrtYFRPc9" target="_blank" rel="noopener noreferrer">Book an intro call</a>
+            </div>
+          </article>
+
+          <article class="service">
+            <div class="icon" aria-hidden="true">★</div>
+            <h3>Coaching for leaders workshop</h3>
+            <p>A one-day intensive for managers and executives who want to move from telling to coaching. Hands-on, practical, and tailored to your team.</p>
+            <div class="service-actions">
+              <a class="btn btn-primary" href="/offers/coaching-for-leaders/">Learn more</a>
+              <a class="btn btn-secondary" data-link="email" href="mailto:michael@chernyakov-coaching.com?subject=Workshop%20inquiry">Inquire about workshops</a>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-row">
+      <div>© <span id="year">2026</span> Chernyakov Coaching</div>
+      <div>
+        <a data-link="email" href="mailto:michael@chernyakov-coaching.com">michael@chernyakov-coaching.com</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Mobile menu toggle
+    (function () {
+      var toggle = document.querySelector('.nav-toggle');
+      var header = document.querySelector('.site-header');
+      if (toggle && header) {
+        function setOpen(open) {
+          toggle.setAttribute('aria-expanded', String(open));
+          header.setAttribute('data-nav-open', String(open));
+          toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+        }
+        toggle.addEventListener('click', function () {
+          var isOpen = toggle.getAttribute('aria-expanded') === 'true';
+          setOpen(!isOpen);
+        });
+        document.querySelectorAll('.nav-links a').forEach(function (link) {
+          link.addEventListener('click', function () { setOpen(false); });
+        });
+      }
+    })();
+
+    // Offers dropdown toggle
+    (function () {
+      function closeAll() {
+        document.querySelectorAll('.nav-dropdown').forEach(function (d) {
+          d.setAttribute('data-open', 'false');
+          var t = d.querySelector('.nav-dropdown-toggle');
+          if (t) t.setAttribute('aria-expanded', 'false');
+        });
+      }
+      document.querySelectorAll('.nav-dropdown-toggle').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          var dropdown = btn.closest('.nav-dropdown');
+          var isOpen = dropdown.getAttribute('data-open') === 'true';
+          closeAll();
+          if (!isOpen) {
+            dropdown.setAttribute('data-open', 'true');
+            btn.setAttribute('aria-expanded', 'true');
+          }
+        });
+      });
+      document.addEventListener('click', function (e) {
+        if (!e.target.closest('.nav-dropdown')) closeAll();
+      });
+    })();
+  </script>
+</body>
+</html>
