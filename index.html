@@ -119,6 +119,15 @@
             <source src="/1779307911545232.mp4" type="video/mp4" />
             Your browser does not support the video tag.
           </video>
+          <button class="video-play-btn" type="button" aria-label="Pause video">
+            <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true">
+              <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/>
+            </svg>
+            <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor" width="16" height="16" aria-hidden="true" style="display:none;">
+              <path d="M8 5v14l11-7z"/>
+            </svg>
+            <span class="video-play-label">Pause</span>
+          </button>
           <button class="video-mute-btn" type="button" aria-label="Unmute video" data-muted="true">
             <svg class="icon-muted" viewBox="0 0 24 24" fill="currentColor" width="18" height="18" aria-hidden="true">
               <path d="M3 9v6h4l5 5V4L7 9H3zm13.59 6L19 12.41 21.41 15l1.41-1.41L20.41 11l2.41-2.41L21.41 7 19 9.41 16.59 7 15.18 8.41 17.59 11l-2.41 2.41L16.59 15z"/>
@@ -265,11 +274,15 @@
     (function () {
       var video = document.getElementById('hero-video');
       var btn = document.querySelector('.video-mute-btn');
+      var playBtn = document.querySelector('.video-play-btn');
       if (!video || !btn) return;
 
       var iconMuted = btn.querySelector('.icon-muted');
       var iconUnmuted = btn.querySelector('.icon-unmuted');
       var label = btn.querySelector('.video-mute-label');
+      var iconPlay = playBtn && playBtn.querySelector('.icon-play');
+      var iconPause = playBtn && playBtn.querySelector('.icon-pause');
+      var playLabel = playBtn && playBtn.querySelector('.video-play-label');
       var firstPlaythroughDone = false;
 
       function updateButton() {
@@ -281,20 +294,38 @@
         if (iconUnmuted) iconUnmuted.style.display = muted ? 'none' : 'block';
       }
 
+      function updatePlayButton() {
+        if (!playBtn) return;
+        if (video.paused) {
+          playBtn.setAttribute('aria-label', 'Play video from start');
+          if (playLabel) playLabel.textContent = 'Play';
+          if (iconPlay) iconPlay.style.display = 'block';
+          if (iconPause) iconPause.style.display = 'none';
+        } else {
+          playBtn.setAttribute('aria-label', 'Pause video');
+          if (playLabel) playLabel.textContent = 'Pause';
+          if (iconPlay) iconPlay.style.display = 'none';
+          if (iconPause) iconPause.style.display = 'block';
+        }
+      }
+
       // Try autoplay with sound first; browsers will likely block it
       video.muted = false;
       var p = video.play();
       if (p && typeof p.catch === 'function') {
         p.then(function () {
           updateButton();
+          updatePlayButton();
         }).catch(function () {
           // Fallback: muted autoplay (allowed everywhere)
           video.muted = true;
           video.play().catch(function(){});
           updateButton();
+          updatePlayButton();
         });
       } else {
         updateButton();
+        updatePlayButton();
       }
 
       // Toggle mute on click
@@ -303,6 +334,22 @@
         if (video.paused) video.play().catch(function(){});
         updateButton();
       });
+
+      // Play (from start) / Pause toggle
+      if (playBtn) {
+        playBtn.addEventListener('click', function () {
+          if (video.paused) {
+            video.currentTime = 0;
+            video.play().catch(function(){});
+          } else {
+            video.pause();
+          }
+        });
+      }
+
+      // Keep play button in sync with native video events
+      video.addEventListener('play', updatePlayButton);
+      video.addEventListener('pause', updatePlayButton);
 
       // After first complete playthrough, mute and loop
       video.addEventListener('ended', function () {
