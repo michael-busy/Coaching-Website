@@ -25,7 +25,7 @@
   <link rel="preload" as="image" href="michael-speaking.jpg" fetchpriority="high" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Source+Serif+Pro:wght@400;600&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+Pro:wght@400;600;700&display=swap" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -67,10 +67,21 @@
         <source src="/background-video-2.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
+
+      <div class="hero-overlay">
+        <h1 class="hero-title">Unlock Your Potential</h1>
+      </div>
+
+      <a class="hero-scroll" href="#personal-coaching">
+        <span class="hero-scroll-text">Discover more</span>
+        <svg class="hero-scroll-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20" aria-hidden="true">
+          <path d="M12 5v14M19 12l-7 7-7-7"/>
+        </svg>
+      </a>
     </section>
 
     <!-- Personal Coaching -->
-    <section class="offer-section">
+    <section id="personal-coaching" class="offer-section">
       <div class="container">
         <div class="offer-grid">
           <div class="offer-content">
