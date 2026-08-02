@@ -2,31 +2,37 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
     <loc>https://chernyakov-coaching.com/</loc>
-    <lastmod>2026-05-17</lastmod>
+    <lastmod>2026-08-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
     <loc>https://chernyakov-coaching.com/about-me/</loc>
-    <lastmod>2026-05-17</lastmod>
+    <lastmod>2026-08-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://chernyakov-coaching.com/offers/</loc>
-    <lastmod>2026-05-17</lastmod>
+    <lastmod>2026-08-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://chernyakov-coaching.com/offers/one-on-one-coaching/</loc>
-    <lastmod>2026-05-17</lastmod>
+    <loc>https://chernyakov-coaching.com/offers/personal-coaching/</loc>
+    <lastmod>2026-08-02</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://chernyakov-coaching.com/offers/confidence-building/</loc>
+    <lastmod>2026-08-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://chernyakov-coaching.com/offers/coaching-for-leaders/</loc>
-    <lastmod>2026-05-17</lastmod>
+    <lastmod>2026-08-02</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
