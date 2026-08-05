@@ -589,6 +589,31 @@ section {
 .mt-md { margin-top: 32px; }
 .mt-lg { margin-top: 40px; }
 
+/* ---------- Circular decorative hero video ---------- */
+.hero-circle-video {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  margin-left: auto;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--accent-soft);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.10);
+}
+.hero-circle-video video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+@media (max-width: 760px) {
+  .hero-circle-video {
+    max-width: 240px;
+    margin: 0 auto;
+  }
+}
+
 /* ---------- Full-screen hero video ---------- */
 .hero-fullscreen {
   position: relative;
