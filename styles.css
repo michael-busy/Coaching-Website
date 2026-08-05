@@ -303,6 +303,13 @@ section {
   max-width: 720px;
   margin-bottom: 48px;
 }
+/* Full-width variant: text runs the whole container width */
+.section-head--wide {
+  max-width: none;
+}
+.section-head--wide p {
+  max-width: none;
+}
 .section-head .eyebrow {
   color: var(--accent);
   font-size: .8rem;
