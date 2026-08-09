@@ -402,6 +402,49 @@ section {
 }
 .footer-row a { color: var(--ink-soft); }
 .footer-row a:hover { color: var(--ink); }
+.footer-links {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+/* ---------- Legal / policy pages ---------- */
+.legal-body {
+  max-width: 760px;
+}
+.legal-body h2 {
+  font-size: 1.35rem;
+  margin-top: 44px;
+  margin-bottom: 14px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+.legal-body > h2:first-child {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+.legal-body p {
+  font-size: .98rem;
+  line-height: 1.7;
+}
+.legal-body ul {
+  margin: 0 0 18px;
+  padding-left: 22px;
+  color: var(--ink-soft);
+}
+.legal-body ul li {
+  font-size: .98rem;
+  line-height: 1.7;
+  margin-bottom: 8px;
+}
+.legal-body em {
+  color: var(--muted);
+  background: var(--accent-soft);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-style: normal;
+}
 
 /* ---------- Split hero (home + about) ---------- */
 .hero-split {
