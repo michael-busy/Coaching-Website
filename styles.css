@@ -552,6 +552,27 @@ section {
   transform: none;
 }
 
+/* Error state */
+.lm-error-box {
+  background: #fdf3f0;
+  border: 1px solid #e8c4b8;
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-top: 18px;
+}
+.lm-error-box h3 {
+  font-family: var(--font-serif);
+  font-size: 1.05rem;
+  color: #9c4221;
+  margin-bottom: 8px;
+}
+.lm-error-box p {
+  font-size: .88rem;
+  margin-bottom: 8px;
+}
+.lm-error-box p:last-child { margin-bottom: 0; }
+.lm-error-box a { color: #9c4221; text-decoration: underline; }
+
 /* Success state */
 .lm-success {
   background: var(--accent-soft);
@@ -577,6 +598,70 @@ section {
 @media (max-width: 860px) {
   .lead-magnet-grid { grid-template-columns: 1fr; gap: 40px; }
   .lead-magnet-form-wrap { position: static; }
+}
+
+/* ---------- Resources page ---------- */
+.resource-list {
+  display: grid;
+  gap: 24px;
+}
+.resource-card {
+  display: grid;
+  grid-template-columns: 64px 1fr;
+  gap: 28px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 32px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, .04);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+.resource-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, .08);
+}
+.resource-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.resource-body h2 {
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+}
+.resource-body > p {
+  font-size: .98rem;
+  margin-bottom: 18px;
+  max-width: 640px;
+}
+.resource-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 22px;
+}
+.resource-meta {
+  font-size: .82rem;
+  color: var(--muted);
+}
+.resource-more {
+  margin-top: 32px;
+  font-size: .92rem;
+  color: var(--muted);
+  font-style: italic;
+}
+@media (max-width: 640px) {
+  .resource-card {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 24px;
+  }
 }
 
 /* ---------- Legal / policy pages ---------- */

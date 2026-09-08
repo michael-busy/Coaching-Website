@@ -6,6 +6,7 @@
   <title>Free Download: The Unstuck Question Toolkit — Chernyakov Coaching</title>
   <meta name="description" content="A free worksheet of coaching questions to help you get unstuck, order your thinking, and decide what to do next. Enter your email and we'll send it over." />
   <meta name="theme-color" content="#2f4a3a" />
+  <meta name="robots" content="noindex, nofollow" />
   <link rel="canonical" href="https://chernyakov-coaching.com/guide/" />
   <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
 
@@ -132,6 +133,19 @@
               <p class="lm-success-note">Not there? Have a look in your spam folder.</p>
             </div>
 
+            <div id="signup-error" class="lm-error-box" hidden>
+              <h3>That didn't go through</h3>
+              <p>
+                Your browser blocked the signup — this is usually an ad blocker or privacy
+                extension. Pause it for this page and try again.
+              </p>
+              <p class="lm-success-note">
+                Or just email me at
+                <a href="mailto:michael@chernyakov-coaching.com?subject=Unstuck%20Question%20Toolkit">michael@chernyakov-coaching.com</a>
+                and I'll send the worksheet straight over.
+              </p>
+            </div>
+
             <p class="form-privacy">
               You'll receive one email to confirm your address, then the download link.
               No spam, and you can unsubscribe at any time. See the
@@ -209,6 +223,7 @@
     (function () {
       var form = document.getElementById('signup-form');
       var success = document.getElementById('signup-success');
+      var errorBox = document.getElementById('signup-error');
       if (!form || !success) return;
 
       form.addEventListener('submit', function (e) {
@@ -217,6 +232,7 @@
         var btn = form.querySelector('.lm-submit');
         btn.disabled = true;
         btn.textContent = 'Sending…';
+        if (errorBox) errorBox.hidden = true;
 
         fetch(form.action, {
           method: 'POST',
@@ -229,7 +245,10 @@
         }).catch(function () {
           btn.disabled = false;
           btn.textContent = 'Send me the worksheet';
-          alert('Something went wrong. Please try again, or email michael@chernyakov-coaching.com and I will send it over.');
+          if (errorBox) {
+            errorBox.hidden = false;
+            errorBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
         });
       });
     })();

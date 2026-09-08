@@ -1,5 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /downloads/
 
 Sitemap: https://chernyakov-coaching.com/sitemap.xml
