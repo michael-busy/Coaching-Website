@@ -3,7 +3,6 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { PRERENDER_PATHS } from "../react-router.config.ts";
 
 const client = fileURLToPath(new URL("../build/client/", import.meta.url));
 const failures = [];
@@ -13,6 +12,11 @@ if (!existsSync(client)) {
   console.error("build/client is missing — run `pnpm build` first.");
   process.exit(1);
 }
+
+// Written by the buildEnd hook in react-router.config.ts.
+const PRERENDER_PATHS = JSON.parse(
+  readFileSync(fileURLToPath(new URL("../build/prerender-paths.json", import.meta.url)), "utf8"),
+);
 
 for (const path of PRERENDER_PATHS) {
   const file = join(client, path, "index.html");
@@ -47,23 +51,27 @@ for (const file of [
   if (!existsSync(join(client, file))) fail(`missing build/client/${file}`);
 }
 
+// Every resource is email-gated: no PDF may be served as a public static file.
 const pdfs = readdirSync(client, { recursive: true }).filter((f) => String(f).endsWith(".pdf"));
-for (const pdf of pdfs) {
-  if (/unstuck/i.test(String(pdf))) fail(`gated PDF leaked into public output: ${pdf}`);
+for (const pdf of pdfs) fail(`PDF in public output (downloads must go through R2): ${pdf}`);
+
+const resourcePages = PRERENDER_PATHS.filter((p) => /^\/resources\/[^/]+\/$/.test(p));
+if (resourcePages.length === 0) fail("no /resources/<slug>/ pages were prerendered");
+const resourcesIndex = readFileSync(join(client, "resources/index.html"), "utf8");
+for (const path of resourcePages) {
+  const html = readFileSync(join(client, path, "index.html"), "utf8");
+  if (!html.includes('class="lm-form"')) fail(`${path}: signup form missing`);
+  if (html.includes('name="robots"')) fail(`${path}: resource pages should be indexable`);
+  if (!resourcesIndex.includes(`href="${path}"`)) fail(`/resources/: no link to ${path}`);
 }
+if (existsSync(join(client, "guide"))) fail("/guide/ should be a redirect, not a page");
 
 const about = readFileSync(join(client, "about-me/index.html"), "utf8");
 if (!about.includes('"@type":"Person"')) fail("/about-me/: JSON-LD Person missing");
-if (
-  !readFileSync(join(client, "guide/index.html"), "utf8").includes('content="noindex, nofollow"')
-) {
-  fail("/guide/: should stay noindex, nofollow");
-}
-
 if (failures.length) {
   console.error(`Prerender check failed (${failures.length}):\n- ${failures.join("\n- ")}`);
   process.exit(1);
 }
 console.log(
-  `Prerender check passed: ${PRERENDER_PATHS.length} pages, ${pdfs.length} public PDF(s).`,
+  `Prerender check passed: ${PRERENDER_PATHS.length} pages (${resourcePages.length} resource pages), no public PDFs.`,
 );

@@ -9,7 +9,6 @@
   // straight from the asset store (free, unmetered requests).
   "assets": {
     "directory": "../web/build/client",
-    "binding": "ASSETS",
     "run_worker_first": ["/api/*"],
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "404-page",
@@ -25,11 +24,12 @@
     },
   ],
 
-  // Non-secret configuration. Secrets are set with `wrangler secret put` (see TODO.md §3).
+  // Non-secret configuration. Secrets are set with `wrangler secret put` (see TODO.md §2).
   "vars": {
-    "MAILERLITE_GROUP_ID": "",
-    "MAILERLITE_NEWSLETTER_GROUP_ID": "",
-    "DOWNLOAD_LINK_TTL_DAYS": "14",
+    // JSON: resource slug → MailerLite "Download: …" group id (TODO.md §3).
+    "MAILERLITE_RESOURCE_GROUP_IDS": "",
+    "MAILERLITE_OFFERS_GROUP_ID": "",
+    "DOWNLOAD_LINK_TTL_HOURS": "24",
   },
 
   // Custom domains are attached at cutover (TODO.md §5), e.g.:

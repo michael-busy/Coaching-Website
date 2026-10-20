@@ -8,6 +8,7 @@
   },
   "scripts": {
     "env:init": "node scripts/init-env.mjs",
+    "r2:seed": "node scripts/seed-r2.mjs",
     "dev": "pnpm env:init && pnpm --parallel --filter @coaching/web --filter @coaching/api dev",
     "dev:backend": "pnpm env:init && pnpm --filter @coaching/api dev",
     "dev:frontend": "pnpm env:init && pnpm --filter @coaching/web dev",

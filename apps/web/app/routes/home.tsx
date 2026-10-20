@@ -1,7 +1,7 @@
 import { Link } from "react-router";
 import { AutoplayVideo } from "~/components/sections/AutoplayVideo";
 import type { Route } from "./+types/home";
-import { BOOKING } from "~/lib/site";
+import { BOOKING, SITE_NAME, SITE_URL } from "~/lib/site";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preload", as: "image", href: "/michael-speaking.jpg", fetchPriority: "high" },
@@ -35,15 +35,15 @@ export const meta: Route.MetaFunction = () => [
   },
   {
     property: "og:url",
-    content: "https://chernyakov-coaching.com/",
+    content: `${SITE_URL}/`,
   },
   {
     property: "og:image",
-    content: "https://chernyakov-coaching.com/michael-speaking.jpg",
+    content: `${SITE_URL}/michael-speaking.jpg`,
   },
   {
     property: "og:site_name",
-    content: "Chernyakov Coaching",
+    content: SITE_NAME,
   },
   {
     property: "og:locale",
@@ -55,7 +55,7 @@ export const meta: Route.MetaFunction = () => [
   },
   {
     name: "twitter:title",
-    content: "Chernyakov Coaching",
+    content: SITE_NAME,
   },
   {
     name: "twitter:description",
@@ -63,12 +63,12 @@ export const meta: Route.MetaFunction = () => [
   },
   {
     name: "twitter:image",
-    content: "https://chernyakov-coaching.com/michael-speaking.jpg",
+    content: `${SITE_URL}/michael-speaking.jpg`,
   },
   {
     tagName: "link",
     rel: "canonical",
-    href: "https://chernyakov-coaching.com/",
+    href: `${SITE_URL}/`,
   },
 ];
 

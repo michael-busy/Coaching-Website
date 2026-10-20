@@ -1,5 +1,5 @@
 import type { Route } from "./+types/about-me";
-import { BOOKING, CONTACT_EMAIL, mailto } from "~/lib/site";
+import { BOOKING, CONTACT_EMAIL, SITE_NAME, SITE_URL, mailto } from "~/lib/site";
 
 export const meta: Route.MetaFunction = () => [
   {
@@ -29,15 +29,15 @@ export const meta: Route.MetaFunction = () => [
   },
   {
     property: "og:url",
-    content: "https://chernyakov-coaching.com/about-me/",
+    content: `${SITE_URL}/about-me/`,
   },
   {
     property: "og:image",
-    content: "https://chernyakov-coaching.com/michael-profile.jpg",
+    content: `${SITE_URL}/michael-profile.jpg`,
   },
   {
     property: "og:site_name",
-    content: "Chernyakov Coaching",
+    content: SITE_NAME,
   },
   {
     property: "og:locale",
@@ -65,20 +65,20 @@ export const meta: Route.MetaFunction = () => [
   },
   {
     name: "twitter:image",
-    content: "https://chernyakov-coaching.com/michael-profile.jpg",
+    content: `${SITE_URL}/michael-profile.jpg`,
   },
   {
     tagName: "link",
     rel: "canonical",
-    href: "https://chernyakov-coaching.com/about-me/",
+    href: `${SITE_URL}/about-me/`,
   },
   {
     "script:ld+json": {
       "@context": "https://schema.org",
       "@type": "Person",
       name: "Michael Chernyakov",
-      url: "https://chernyakov-coaching.com/about-me/",
-      image: "https://chernyakov-coaching.com/michael-profile.jpg",
+      url: `${SITE_URL}/about-me/`,
+      image: `${SITE_URL}/michael-profile.jpg`,
       email: CONTACT_EMAIL,
       jobTitle: "Product Lead — B2C",
       worksFor: { "@type": "Organization", name: "Solaris SE" },

@@ -1,7 +1,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { signupRequestSchema, type GatedResourceSlug } from "@coaching/shared";
+import { signupRequestSchema } from "@coaching/shared";
 import { Turnstile } from "@marsidev/react-turnstile";
-import { Loader2 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
+import { Download, Loader2 } from "lucide-react";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { Link } from "react-router";
@@ -10,35 +11,38 @@ import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { postSignup } from "~/lib/api";
+import type { ResourceContent } from "~/lib/resources";
 import { CONTACT_EMAIL, TURNSTILE_SITE_KEY, mailto } from "~/lib/site";
-import { useSignup } from "./useSignup";
 
 const formSchema = z.object({
   email: signupRequestSchema.shape.email,
-  consentEmail: z.boolean().refine((checked) => checked, {
-    error: "Please confirm that we may email you the worksheet.",
-  }),
-  consentNewsletter: z.boolean(),
+  consentOffers: z.boolean(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
+/**
+ * Wording of the optional offers consent. It is stored as evidence under OFFERS_CONSENT_VERSION
+ * (@coaching/shared): bump that version whenever this text changes.
+ */
+const OFFERS_CONSENT_TEXT =
+  "Yes, send me offers, new resources and occasional invitations to book a call or join a course by email. I can unsubscribe at any time.";
+
 export function SignupForm({
   resource,
-  emailSubject,
 }: {
-  resource: GatedResourceSlug;
-  emailSubject: string;
+  resource: Pick<ResourceContent, "slug" | "title" | "kind">;
 }) {
   // Bumping the key remounts the widget, which fetches a fresh single-use token.
   const [turnstileKey, setTurnstileKey] = useState(0);
   const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
   const [captchaMessage, setCaptchaMessage] = useState<string | null>(null);
-  const signup = useSignup();
+  const signup = useMutation({ mutationFn: postSignup });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: { email: "", consentEmail: false, consentNewsletter: false },
+    defaultValues: { email: "", consentOffers: false },
   });
   const { errors } = form.formState;
 
@@ -50,12 +54,14 @@ export function SignupForm({
     setCaptchaMessage(null);
     const result = await signup.mutateAsync({
       email: values.email,
-      consentEmail: true,
-      consentNewsletter: values.consentNewsletter,
-      resource,
+      consentOffers: values.consentOffers,
+      resource: resource.slug,
       turnstileToken,
     });
-    if (!result.ok) {
+    if (result.ok) {
+      // The response is a file attachment, so the browser downloads it and stays on this page.
+      window.location.assign(result.downloadUrl);
+    } else {
       // Turnstile tokens are single-use: get a fresh one for the next attempt.
       setTurnstileToken(null);
       setTurnstileKey((key) => key + 1);
@@ -65,12 +71,21 @@ export function SignupForm({
   if (signup.data?.ok) {
     return (
       <div className="lm-success" role="status">
-        <h3>Check your inbox</h3>
+        <h3>Your download is ready</h3>
         <p>
-          I've sent you an email to confirm your address. Click the link inside and the worksheet
-          will arrive straight after.
+          The {resource.kind} should be downloading now. If it didn't start, use the button below.
         </p>
-        <p className="lm-success-note">Not there? Have a look in your spam folder.</p>
+        <Button asChild size="lg" className="mb-4 w-full">
+          <a href={signup.data.downloadUrl} download>
+            <Download aria-hidden="true" />
+            Download {resource.title}
+          </a>
+        </Button>
+        {signup.variables?.consentOffers && (
+          <p className="lm-success-note">
+            Check your inbox: please confirm your email address to start receiving offers.
+          </p>
+        )}
       </div>
     );
   }
@@ -101,43 +116,17 @@ export function SignupForm({
 
         <Controller
           control={form.control}
-          name="consentEmail"
-          render={({ field, fieldState }) => (
-            <div className="lm-consent">
-              <Checkbox
-                id="lm-consent-email"
-                checked={field.value}
-                onCheckedChange={(checked) => field.onChange(checked === true)}
-                onBlur={field.onBlur}
-                aria-invalid={fieldState.error ? true : undefined}
-              />
-              <label htmlFor="lm-consent-email">
-                Yes, email me the worksheet. <span className="lm-required">Required</span>
-                {fieldState.error && (
-                  <span className="mt-1 block text-sm text-destructive">
-                    {fieldState.error.message}
-                  </span>
-                )}
-              </label>
-            </div>
-          )}
-        />
-
-        <Controller
-          control={form.control}
-          name="consentNewsletter"
+          name="consentOffers"
           render={({ field }) => (
             <div className="lm-consent">
               <Checkbox
-                id="lm-consent-newsletter"
+                id="lm-consent-offers"
                 checked={field.value}
                 onCheckedChange={(checked) => field.onChange(checked === true)}
                 onBlur={field.onBlur}
               />
-              <label htmlFor="lm-consent-newsletter">
-                Also send me the newsletter — new worksheets and tools, free resources, and
-                occasional invitations to book a call or join a course.{" "}
-                <span className="lm-optional">Optional</span>
+              <label htmlFor="lm-consent-offers">
+                {OFFERS_CONSENT_TEXT} <span className="lm-optional">Optional</span>
               </label>
             </div>
           )}
@@ -160,7 +149,7 @@ export function SignupForm({
 
         <Button type="submit" className="lm-submit w-full" size="lg" disabled={submitting}>
           {submitting && <Loader2 className="animate-spin" aria-hidden="true" />}
-          {submitting ? "Sending…" : "Send me the worksheet"}
+          {submitting ? "Preparing your download…" : `Download the ${resource.kind}`}
         </Button>
       </form>
 
@@ -169,16 +158,16 @@ export function SignupForm({
           <h3>That didn't go through</h3>
           <p>{failure.message}</p>
           <p className="lm-success-note">
-            Or just email me at <a href={mailto(emailSubject)}>{CONTACT_EMAIL}</a> and I'll send the
-            worksheet straight over.
+            Or just email me at <a href={mailto(resource.title)}>{CONTACT_EMAIL}</a> and I'll send
+            the {resource.kind} straight over.
           </p>
         </div>
       )}
 
       <p className="form-privacy">
-        You'll receive one email to confirm your address, then the download link. No spam, and you
-        can unsubscribe at any time. See the <Link to="/privacy/">privacy policy</Link> for how your
-        data is handled.
+        Your email address is stored so I can provide the download. You'll only receive offers if
+        you tick the box above and confirm your address. See the{" "}
+        <Link to="/privacy/">privacy policy</Link> for how your data is handled.
       </p>
     </>
   );

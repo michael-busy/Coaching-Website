@@ -1,12 +1,15 @@
 import { zValidator } from "@hono/zod-validator";
-import { signupRequestSchema, type SignupResponse } from "@coaching/shared";
+import { OFFERS_CONSENT_VERSION, signupRequestSchema, type SignupResponse } from "@coaching/shared";
 import { Hono } from "hono";
-import { requireEnv, type AppEnv } from "../env";
-import { rejoinGroup, upsertSubscriber } from "../services/mailerlite";
+import { downloadLinkTtlSeconds, requireEnv, resourceGroupId, type AppEnv } from "../env";
+import {
+  getSubscriber,
+  subscriberUpdate,
+  upsertSubscriber,
+  type ExistingSubscriber,
+} from "../services/mailerlite";
 import { createDownloadToken } from "../services/tokens";
 import { verifyTurnstile } from "../services/turnstile";
-
-const SECONDS_PER_DAY = 86_400;
 
 function failure(
   error: Extract<SignupResponse, { ok: false }>["error"],
@@ -46,43 +49,48 @@ export const signup = new Hono<AppEnv>().post(
       return c.json(failure("captcha_failed", "The bot check failed. Please try again."), 403);
     }
 
-    const ttlDays = Number(c.env.DOWNLOAD_LINK_TTL_DAYS) || 14;
-    const expiresAt = Math.floor(Date.now() / 1000) + ttlDays * SECONDS_PER_DAY;
+    // Resolve config and sign the link before touching MailerLite, so a misconfiguration never
+    // leaves a subscriber stored without a download.
     const token = await createDownloadToken(
       requireEnv(c.env, "DOWNLOAD_TOKEN_SECRET"),
       body.resource,
-      expiresAt,
+      Math.floor(Date.now() / 1000) + downloadLinkTtlSeconds(c.env),
     );
-    const downloadUrl = new URL(`/api/downloads/${body.resource}`, c.req.url);
-    downloadUrl.searchParams.set("t", token);
+    const downloadUrl = `/api/downloads/${body.resource}?${new URLSearchParams({ t: token })}`;
+    const resourceGroup = resourceGroupId(c.env, body.resource);
+    const offersGroup = body.consentOffers ? requireEnv(c.env, "MAILERLITE_OFFERS_GROUP_ID") : null;
+
+    const upsertPayload = (existing: ExistingSubscriber | null) => {
+      const update = subscriberUpdate(existing, body.consentOffers);
+      const fields: Record<string, string> = { last_download: body.resource };
+      if (body.consentOffers) {
+        fields.marketing_consent = "yes";
+        fields.marketing_consent_at = new Date().toISOString();
+        fields.consent_text_version = OFFERS_CONSENT_VERSION;
+      } else if (!existing) {
+        // Only new subscribers get "no": never overwrite an earlier "yes".
+        fields.marketing_consent = "no";
+      }
+      return {
+        email: body.email,
+        groups: [resourceGroup, ...(update.addToOffers && offersGroup ? [offersGroup] : [])],
+        fields,
+        status: update.status,
+        resubscribe: update.resubscribe,
+        ipAddress: clientIp,
+      };
+    };
 
     if (c.env.MAILERLITE_DRY_RUN === "true") {
-      // Local development without a MailerLite account: the link would be in the email.
-      console.log(`[dry run] MailerLite skipped. Download link for ${body.email}: ${downloadUrl}`);
-      return c.json({ ok: true } satisfies SignupResponse, 200);
+      console.log("[dry run] MailerLite skipped. Would upsert:", upsertPayload(null));
+      return c.json({ ok: true, downloadUrl } satisfies SignupResponse, 200);
     }
 
     const apiToken = requireEnv(c.env, "MAILERLITE_API_TOKEN");
-    const worksheetGroupId = requireEnv(c.env, "MAILERLITE_GROUP_ID");
-    const groups = [worksheetGroupId];
-    if (body.consentNewsletter) groups.push(requireEnv(c.env, "MAILERLITE_NEWSLETTER_GROUP_ID"));
-
-    const upserted = await upsertSubscriber({
-      apiToken,
-      email: body.email,
-      groups,
-      fields: { download_url: downloadUrl.toString() },
-    });
-
-    // Existing subscriber: re-enter the worksheet group so the download email is sent again.
-    const result =
-      upserted.ok && !upserted.created
-        ? await rejoinGroup({
-            apiToken,
-            subscriberId: upserted.subscriberId,
-            groupId: worksheetGroupId,
-          })
-        : upserted;
+    const lookup = await getSubscriber({ apiToken, email: body.email });
+    const result = lookup.ok
+      ? await upsertSubscriber({ apiToken, ...upsertPayload(lookup.subscriber) })
+      : lookup;
 
     if (!result.ok) {
       console.error("MailerLite request failed", { status: result.status, kind: result.kind });
@@ -101,6 +109,6 @@ export const signup = new Hono<AppEnv>().post(
       );
     }
 
-    return c.json({ ok: true } satisfies SignupResponse, 200);
+    return c.json({ ok: true, downloadUrl } satisfies SignupResponse, 200);
   },
 );

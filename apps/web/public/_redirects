@@ -1,8 +1,12 @@
 # Old URLs from the static site (Cloudflare Workers static assets redirects).
-/about.html                                      /about-me/                    301
-/offers/one-on-one-coaching                      /offers/personal-coaching/    301
-/offers/one-on-one-coaching/                     /offers/personal-coaching/    301
-# The Unstuck worksheet is now gated: send old direct links to the signup page.
-/downloads/Unstuck_Question_Toolkit_Worksheet.pdf  /guide/                     302
-/PDFs/Unstuck_Question_Toolkit_Worksheet.pdf       /guide/                     302
-/PDFs/The-Four-Goals-Workbook.pdf                  /downloads/The-Four-Goals-Workbook.pdf  301
+/about.html                                        /about-me/                    301
+/offers/one-on-one-coaching                        /offers/personal-coaching/    301
+/offers/one-on-one-coaching/                       /offers/personal-coaching/    301
+# The Unstuck landing page moved to its resource page.
+/guide                                             /resources/unstuck/           301
+/guide/                                            /resources/unstuck/           301
+# Downloads are email-gated now: old direct PDF links go to the resource page.
+/downloads/The-Four-Goals-Workbook.pdf             /resources/four-goals/        302
+/downloads/Unstuck_Question_Toolkit_Worksheet.pdf  /resources/unstuck/           302
+/PDFs/The-Four-Goals-Workbook.pdf                  /resources/four-goals/        302
+/PDFs/Unstuck_Question_Toolkit_Worksheet.pdf       /resources/unstuck/           302

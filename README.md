@@ -25,7 +25,7 @@ pnpm dev            # frontend + backend together
 
 The first run creates `apps/api/.env` and `apps/web/.env` from their `.env.example` templates. Both are git-ignored. You can also run that step on its own with `pnpm env:init`. The defaults work without any accounts:
 - Turnstile uses Cloudflare's test keys.
-- MailerLite runs in dry-run mode: the signup logs the download link in the backend terminal instead of sending an email.
+- MailerLite runs in dry-run mode: a download signup logs the subscriber payload in the backend terminal instead of calling MailerLite.
 
 | Command | Starts |
 |---------|--------|
@@ -40,9 +40,10 @@ The first run creates `apps/api/.env` and `apps/web/.env` from their `.env.examp
 |------|----------|---------|
 | `apps/web/.env` | `BACKEND_URL` | Where the frontend sends `/api/*`. The browser calls the dev server, which forwards to this URL, so it can be the local Worker (default `http://localhost:8787`) or a deployed one, with no CORS setup. Only used by the dev server: in production the Worker serves pages and API from the same origin. |
 | `apps/web/.env` | `VITE_TURNSTILE_SITE_KEY` | Public Turnstile site key. Empty = Cloudflare test key. |
+| shell, set by `pnpm deploy` / CI deploy | `REQUIRE_TURNSTILE_SITE_KEY=true` | Makes the build fail if `VITE_TURNSTILE_SITE_KEY` is empty or a test key. Not needed locally. |
 | `apps/api/.env` | `MAILERLITE_DRY_RUN` | `true` = skip MailerLite and log the link. Local only. |
-| `apps/api/.env` | `MAILERLITE_API_TOKEN`, `MAILERLITE_GROUP_ID`, `MAILERLITE_NEWSLETTER_GROUP_ID` | Needed when dry run is off. Use test groups. |
-| `apps/api/.env` | `TURNSTILE_SECRET_KEY`, `DOWNLOAD_TOKEN_SECRET`, `DOWNLOAD_LINK_TTL_DAYS` | Bot check secret, link signing secret, link lifetime |
+| `apps/api/.env` | `MAILERLITE_API_TOKEN`, `MAILERLITE_RESOURCE_GROUP_IDS` (JSON: slug → group id), `MAILERLITE_OFFERS_GROUP_ID` | Needed when dry run is off. Use test groups. |
+| `apps/api/.env` | `TURNSTILE_SECRET_KEY`, `DOWNLOAD_TOKEN_SECRET`, `DOWNLOAD_LINK_TTL_HOURS` | Bot check secret, link signing secret, link lifetime in hours (required, > 0) |
 
 Shell variables override the files, for example `BACKEND_URL=https://….workers.dev pnpm dev:frontend`.
 
@@ -50,17 +51,15 @@ Note: if an `apps/api/.dev.vars` file exists, wrangler reads it **instead of** `
 
 Production values are not set in these files. Secrets go in with `wrangler secret put` and plain variables live in `wrangler.jsonc` (see `DEPLOY.md`).
 
-### Local gated download
+### Local downloads
 
-The gated download reads from a local R2 bucket. Seed it once:
+Every resource is downloaded from a private R2 bucket, so seed the local bucket once:
 
 ```bash
-git show main:downloads/Unstuck_Question_Toolkit_Worksheet.pdf > /tmp/unstuck.pdf
-pnpm --filter @coaching/api exec wrangler r2 object put coaching-downloads/unstuck.pdf \
-  --file /tmp/unstuck.pdf --content-type application/pdf --local
+pnpm r2:seed
 ```
 
-Then open the link from the dry-run log line.
+Then open http://localhost:5180/resources/, pick a resource and enter any email: the download starts. In dry-run mode the backend terminal shows what would have been sent to MailerLite.
 
 ## Scripts
 
@@ -68,6 +67,7 @@ Then open the link from the dry-run log line.
 |---------|--------------|
 | `pnpm dev` / `dev:frontend` / `dev:backend` | Local dev servers (see above) |
 | `pnpm env:init` | Create missing `apps/*/.env` from `.env.example` |
+| `pnpm r2:seed` | Upload the PDFs to the local R2 bucket (`--remote` for Cloudflare) |
 | `pnpm build` | Prerender the web app into `apps/web/build/client` |
 | `pnpm typecheck` | React Router typegen, then `tsc` in every package |
 | `pnpm lint` / `pnpm format` | ESLint / Prettier |

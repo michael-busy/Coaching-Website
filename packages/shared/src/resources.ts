@@ -1,24 +1,28 @@
+import { z } from "zod";
+
 /**
- * Downloadable resources offered on the site.
- *
- * Free resources are plain static files under `/downloads/`. Gated resources live in a
- * private R2 bucket and are only reachable through a signed link sent after email signup.
+ * Downloadable resources. Every resource is gated: the PDFs live in a private R2 bucket and are
+ * only reachable through a signed link that the API returns after the visitor enters their email.
  */
-export type Resource =
-  | { slug: string; title: string; gated: false; publicPath: string }
-  | { slug: string; title: string; gated: true; r2Key: string; fileName: string };
+export type Resource = {
+  slug: string;
+  title: string;
+  /** Object key in the R2 bucket `coaching-downloads`. */
+  r2Key: string;
+  /** File name the browser saves the download as. */
+  fileName: string;
+};
 
 export const RESOURCES = {
   "four-goals": {
     slug: "four-goals",
     title: "The Four Goals Workbook",
-    gated: false,
-    publicPath: "/downloads/The-Four-Goals-Workbook.pdf",
+    r2Key: "four-goals.pdf",
+    fileName: "The-Four-Goals-Workbook.pdf",
   },
   unstuck: {
     slug: "unstuck",
     title: "The Unstuck Question Toolkit",
-    gated: true,
     r2Key: "unstuck.pdf",
     fileName: "Unstuck_Question_Toolkit_Worksheet.pdf",
   },
@@ -26,5 +30,10 @@ export const RESOURCES = {
 
 export type ResourceSlug = keyof typeof RESOURCES;
 
-export const GATED_RESOURCE_SLUGS = ["unstuck"] as const satisfies readonly ResourceSlug[];
-export type GatedResourceSlug = (typeof GATED_RESOURCE_SLUGS)[number];
+export const RESOURCE_SLUGS = Object.keys(RESOURCES) as [ResourceSlug, ...ResourceSlug[]];
+
+export const resourceSlugSchema = z.enum(RESOURCE_SLUGS);
+
+export function isResourceSlug(value: string): value is ResourceSlug {
+  return Object.hasOwn(RESOURCES, value);
+}

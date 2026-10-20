@@ -22,7 +22,7 @@ Every manual step (accounts, tokens, dashboard settings, DNS) is tracked in `TOD
 | 2. Frontend port | ✅ all 9 pages, same text/links/images as the old site (verified by diff), redirects, 404 |
 | 3. API | ✅ `/api/health`, `/api/signup`, `/api/downloads/:slug`; 21 unit tests |
 | 4. Reactive signup | ✅ `SignupForm` with real success/error states |
-| 5. Gated assets + cleanup | ✅ code side; R2 upload is manual (`TODO.md` §3). Old static files deleted |
+| 5. Gated assets + cleanup | ✅ code side; all resources gated (see "Owner request" below); R2 upload is manual (`pnpm r2:seed --remote`). Old static files deleted |
 | 6. Preview deploy | 🚧 blocked on Cloudflare account; verified locally with `wrangler dev` |
 | 7. Cutover | 🚧 code side done (privacy policy, docs, `routes` stub); DNS steps manual |
 
@@ -40,6 +40,32 @@ Every manual step (accounts, tokens, dashboard settings, DNS) is tracked in `TOD
 - **Gated download link:** MailerLite stores the full `download_url` instead of a bare token, so the email template doesn't need to know the URL format.
 - **Local env:** `.env` / `.env.example` per app instead of `.dev.vars` (wrangler reads `.env` when no `.dev.vars` exists). `BACKEND_URL` in `apps/web/.env` sets where the dev server forwards `/api/*`. `MAILERLITE_DRY_RUN=true` (local only) logs the download link instead of calling MailerLite.
 - **Signup rate limit:** a Workers rate-limiting binding (`SIGNUP_RATE_LIMITER`, 5 requests/min per IP) runs in front of Turnstile.
+
+### Owner request: gated resources (2026-10-20)
+
+The owner asked for every resource on `/resources/` to open its own page where the visitor enters an email and then downloads the file, with emails collected in MailerLite for offers, GDPR-compliant.
+
+| Decision | Choice |
+|----------|--------|
+| Offers consent | Optional, unticked checkbox; the download never depends on it (GDPR Art. 7(4)) |
+| Delivery | Instant: `POST /api/signup` returns a signed `downloadUrl` (default 24 h) and the browser downloads it |
+| MailerLite | Our API → MailerLite API |
+| Scope | All resources; no public PDFs (R2 only, `pnpm r2:seed`) |
+| No consent | Still stored: resource group, `marketing_consent=no` |
+
+MailerLite status rules (`subscriberUpdate` in `apps/api/src/services/mailerlite.ts`; the API looks the subscriber up first):
+
+| Existing subscriber | Offers ticked | Upsert sends |
+|---------------------|---------------|--------------|
+| none | yes | `status: unconfirmed` + Offers group → double opt-in email |
+| none | no | `status: unsubscribed` (stored, never emailed) |
+| unsubscribed | yes | `status: unconfirmed`, `resubscribe: true` + Offers group |
+| active / unconfirmed / other | yes | no status change + Offers group |
+| any | no | no status change, no Offers group |
+
+Every upsert adds the resource's group (`MAILERLITE_RESOURCE_GROUP_IDS`) and the fields `last_download`, `marketing_consent` (`yes` only on a tick; `no` only for new subscribers), `marketing_consent_at` and `consent_text_version` (on a tick), plus `ip_address`.
+
+Superseded by this: the email-delivered link, the download automation, the `download_url` field, the group re-join logic and the `/guide/` page (now a 301 to `/resources/unstuck/`).
 
 ## Hosting decision: Cloudflare
 
@@ -165,7 +191,7 @@ Request and response types come from the zod schemas in `packages/shared`: the A
 
 ## Phases
 
-**Phase 0: prerequisites (manual — see `TODO.md` §1–§4)**
+**Phase 0: prerequisites (manual — see `TODO.md` §1–§3)**
 - [ ] Cloudflare account + zone added (nameservers not switched yet), MailerLite API token / field / groups / automation, Turnstile widget, product decisions (canonical booking link, which PDFs are gated).
 
 **Phase 1: monorepo scaffold**

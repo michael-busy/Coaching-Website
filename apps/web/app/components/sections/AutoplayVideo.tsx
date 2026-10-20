@@ -1,10 +1,6 @@
 import { useEffect, useRef } from "react";
 
-/**
- * Muted, looping background video without controls.
- * React does not reliably reflect `muted` as an attribute, and browsers only autoplay muted
- * video, so the property is set explicitly and playback started after hydration.
- */
+/** Muted looping background video. React doesn't reliably set `muted`, which autoplay needs. */
 export function AutoplayVideo({ src, className }: { src: string; className?: string }) {
   const ref = useRef<HTMLVideoElement>(null);
 
@@ -12,9 +8,7 @@ export function AutoplayVideo({ src, className }: { src: string; className?: str
     const video = ref.current;
     if (!video) return;
     video.muted = true;
-    video.play().catch(() => {
-      // Autoplay can still be blocked (e.g. low-power mode); the poster frame stays visible.
-    });
+    video.play().catch(() => {}); // can still be blocked, e.g. in low-power mode
   }, []);
 
   return (

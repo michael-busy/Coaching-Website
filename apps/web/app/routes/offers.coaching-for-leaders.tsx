@@ -1,5 +1,5 @@
 import type { Route } from "./+types/offers.coaching-for-leaders";
-import { mailto } from "~/lib/site";
+import { SITE_URL, mailto } from "~/lib/site";
 
 export const meta: Route.MetaFunction = () => [
   {
@@ -13,7 +13,7 @@ export const meta: Route.MetaFunction = () => [
   {
     tagName: "link",
     rel: "canonical",
-    href: "https://chernyakov-coaching.com/offers/coaching-for-leaders/",
+    href: `${SITE_URL}/offers/coaching-for-leaders/`,
   },
 ];
 
@@ -21,7 +21,7 @@ export default function CoachingForLeaders() {
   return (
     <>
       {/* Hero */}
-      <section className="hero" style={{ borderTop: "none" }}>
+      <section className="hero [border-top:none]">
         <div className="container">
           <span className="eyebrow">Workshop</span>
           <h1>Coaching for Leaders</h1>
@@ -29,14 +29,14 @@ export default function CoachingForLeaders() {
             Elevate your leadership — a one-day intensive for corporate leaders, executives, and
             managers ready to move from telling to coaching.
           </p>
-          <p style={{ maxWidth: "720px", color: "var(--ink-soft)" }}>
+          <p className="max-w-[720px] text-ink-soft">
             Modern organizational success depends on driving performance through people. This
             interactive, single-day workshop is engineered for leaders who want to transition from
             traditional management styles to a highly impactful coaching methodology. The program
             bypasses theoretical lectures and focuses heavily on mental preparation, active
             listening, and practical application.
           </p>
-          <div className="hero-actions" style={{ marginTop: "24px" }}>
+          <div className="hero-actions mt-6">
             <a className="btn btn-primary" href={mailto("Coaching for Leaders workshop inquiry")}>
               Inquire about a workshop
             </a>
@@ -60,7 +60,7 @@ export default function CoachingForLeaders() {
             </p>
           </div>
 
-          <div style={{ overflowX: "auto" }}>
+          <div className="overflow-x-auto">
             <table className="comparison-table">
               <thead>
                 <tr>

@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 const SUBSCRIBERS_URL = "https://connect.mailerlite.com/api/subscribers";
 
 export type MailerLiteFailure = {
@@ -6,8 +8,12 @@ export type MailerLiteFailure = {
   status: number;
 };
 
-export type UpsertSubscriberResult =
-  { ok: true; created: boolean; subscriberId: string } | MailerLiteFailure;
+const subscriberResponseSchema = z.object({
+  /** active | unsubscribed | unconfirmed | bounced | junk */
+  data: z.object({ status: z.string() }),
+});
+
+export type ExistingSubscriber = z.infer<typeof subscriberResponseSchema>["data"];
 
 function headers(apiToken: string): HeadersInit {
   return {
@@ -23,19 +29,58 @@ function failure(status: number): MailerLiteFailure {
   return { ok: false, kind: "upstream", status };
 }
 
+/** `subscriber` is null when the email is not in MailerLite yet. */
+export async function getSubscriber(options: {
+  apiToken: string;
+  email: string;
+}): Promise<{ ok: true; subscriber: ExistingSubscriber | null } | MailerLiteFailure> {
+  const response = await fetch(`${SUBSCRIBERS_URL}/${encodeURIComponent(options.email)}`, {
+    headers: headers(options.apiToken),
+  });
+  if (response.status === 404) return { ok: true, subscriber: null };
+  if (!response.ok) return failure(response.status);
+
+  const body = subscriberResponseSchema.safeParse(await response.json().catch(() => null));
+  if (!body.success) return { ok: false, kind: "upstream", status: response.status };
+  return { ok: true, subscriber: { status: body.data.data.status } };
+}
+
+export type SubscriberUpdate = {
+  /** Omitted when the existing status must be kept. */
+  status?: "unconfirmed" | "unsubscribed";
+  resubscribe?: true;
+  addToOffers: boolean;
+};
+
 /**
- * Create or update a MailerLite subscriber and add them to the given groups.
- * MailerLite answers 201 for a new subscriber and 200 for an existing one.
- *
- * Double opt-in is not requested here: it is applied by MailerLite itself when
- * "double opt-in for API and integrations" is enabled in the account (see TODO.md).
+ * How a download signup changes the subscriber (status table in docs/new_architecture_plan.md):
+ * `unconfirmed` triggers MailerLite's double opt-in email; `unsubscribed` stores the email but
+ * MailerLite never emails it; an existing subscriber without consent is left untouched.
  */
+export function subscriberUpdate(
+  existing: ExistingSubscriber | null,
+  consentOffers: boolean,
+): SubscriberUpdate {
+  if (!consentOffers) {
+    return existing ? { addToOffers: false } : { status: "unsubscribed", addToOffers: false };
+  }
+  if (!existing) return { status: "unconfirmed", addToOffers: true };
+  if (existing.status === "unsubscribed") {
+    return { status: "unconfirmed", resubscribe: true, addToOffers: true };
+  }
+  return { addToOffers: true };
+}
+
+/** Create (201) or update (200) a subscriber. Omitted groups and fields are kept. */
 export async function upsertSubscriber(options: {
   apiToken: string;
   email: string;
   groups: string[];
   fields: Record<string, string>;
-}): Promise<UpsertSubscriberResult> {
+  status?: SubscriberUpdate["status"];
+  resubscribe?: true;
+  ipAddress?: string;
+}): Promise<{ ok: true } | MailerLiteFailure> {
   const response = await fetch(SUBSCRIBERS_URL, {
     method: "POST",
     headers: headers(options.apiToken),
@@ -43,36 +88,12 @@ export async function upsertSubscriber(options: {
       email: options.email,
       fields: options.fields,
       groups: options.groups,
+      ...(options.status ? { status: options.status } : {}),
+      ...(options.resubscribe ? { resubscribe: true } : {}),
+      ...(options.ipAddress ? { ip_address: options.ipAddress } : {}),
     }),
   });
 
-  if (response.status !== 200 && response.status !== 201) return failure(response.status);
-
-  const body = (await response.json().catch(() => null)) as { data?: { id?: unknown } } | null;
-  const id = body?.data?.id;
-  if (typeof id !== "string" && typeof id !== "number") {
-    return { ok: false, kind: "upstream", status: response.status };
-  }
-  return { ok: true, created: response.status === 201, subscriberId: String(id) };
-}
-
-/**
- * Remove and re-add a subscriber to a group. A "subscriber joins group" automation does not fire
- * for someone who is already in the group, so this makes a repeat signup (e.g. after an expired
- * link) send the download email again.
- */
-export async function rejoinGroup(options: {
-  apiToken: string;
-  subscriberId: string;
-  groupId: string;
-}): Promise<{ ok: true } | MailerLiteFailure> {
-  const url = `${SUBSCRIBERS_URL}/${encodeURIComponent(options.subscriberId)}/groups/${encodeURIComponent(options.groupId)}`;
-
-  const removed = await fetch(url, { method: "DELETE", headers: headers(options.apiToken) });
-  // 404: not in the group (anymore), which is fine before re-adding.
-  if (!removed.ok && removed.status !== 404) return failure(removed.status);
-
-  const added = await fetch(url, { method: "POST", headers: headers(options.apiToken) });
-  if (!added.ok) return failure(added.status);
-  return { ok: true };
+  if (response.status === 200 || response.status === 201) return { ok: true };
+  return failure(response.status);
 }

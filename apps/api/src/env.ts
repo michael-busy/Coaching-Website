@@ -1,23 +1,22 @@
-/** Bindings, secrets and vars available to the Worker (see wrangler.jsonc and .env.example). */
+import { z } from "zod";
+
+/** Worker bindings, secrets and vars (see wrangler.jsonc and .env.example). */
 export interface Bindings {
-  /** Static assets: the prerendered web app in apps/web/build/client. */
-  ASSETS: Fetcher;
-  /** Private R2 bucket holding the gated downloads. */
+  /** Private R2 bucket with the downloadable PDFs. */
   DOWNLOADS: R2Bucket;
-  /** Optional: Workers rate limiting binding for the signup endpoint. */
   SIGNUP_RATE_LIMITER?: RateLimit;
 
-  // Secrets (wrangler secret put in production, apps/api/.env locally)
+  // Secrets
   MAILERLITE_API_TOKEN: string;
   TURNSTILE_SECRET_KEY: string;
   DOWNLOAD_TOKEN_SECRET: string;
 
-  // Plain vars (wrangler.jsonc "vars")
-  MAILERLITE_GROUP_ID: string;
-  MAILERLITE_NEWSLETTER_GROUP_ID: string;
-  DOWNLOAD_LINK_TTL_DAYS: string;
-
-  /** Local development only (apps/api/.env): "true" skips MailerLite and logs the link. */
+  // Vars
+  /** JSON: resource slug → MailerLite group id. */
+  MAILERLITE_RESOURCE_GROUP_IDS: string;
+  MAILERLITE_OFFERS_GROUP_ID: string;
+  DOWNLOAD_LINK_TTL_HOURS: string;
+  /** Local dev only: "true" skips MailerLite and logs the payload. */
   MAILERLITE_DRY_RUN?: string;
 }
 
@@ -27,7 +26,33 @@ export class ConfigError extends Error {
   override name = "ConfigError";
 }
 
-/** Read a required binding value, failing loudly when it is missing or empty. */
+const resourceGroupIdsSchema = z.record(z.string(), z.string().min(1));
+
+export function resourceGroupId(env: Bindings, slug: string): string {
+  const raw = requireEnv(env, "MAILERLITE_RESOURCE_GROUP_IDS");
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new ConfigError("MAILERLITE_RESOURCE_GROUP_IDS is not valid JSON");
+  }
+  const groups = resourceGroupIdsSchema.safeParse(parsed);
+  if (!groups.success) {
+    throw new ConfigError('MAILERLITE_RESOURCE_GROUP_IDS must look like {"<slug>": "<group id>"}');
+  }
+  const id = groups.data[slug];
+  if (!id) throw new ConfigError(`MAILERLITE_RESOURCE_GROUP_IDS has no group for "${slug}"`);
+  return id;
+}
+
+/** DOWNLOAD_LINK_TTL_HOURS as a positive number of seconds. */
+export function downloadLinkTtlSeconds(env: Bindings): number {
+  const hours = Number(requireEnv(env, "DOWNLOAD_LINK_TTL_HOURS"));
+  if (!(hours > 0)) throw new ConfigError("DOWNLOAD_LINK_TTL_HOURS must be a positive number");
+  return hours * 3_600;
+}
+
+/** A required binding; throws ConfigError when missing or empty. */
 export function requireEnv<K extends keyof Bindings>(
   env: Bindings,
   key: K,

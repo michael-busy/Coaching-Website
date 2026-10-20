@@ -42,7 +42,7 @@ jobs:
           retention-days: 7
 
   # Manual only. Runs from any branch so the preview deploy can happen before the merge to
-  # main (TODO.md §5); protect the `production` environment with required reviewers.
+  # main (TODO.md §4); protect the `production` environment with required reviewers.
   deploy:
     needs: check
     if: github.event_name == 'workflow_dispatch' && inputs.deploy

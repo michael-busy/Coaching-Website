@@ -1,5 +1,5 @@
 import type { Route } from "./+types/privacy";
-import { CONTACT_EMAIL, mailto } from "~/lib/site";
+import { CONTACT_EMAIL, SITE_URL, mailto } from "~/lib/site";
 
 export const meta: Route.MetaFunction = () => [
   {
@@ -17,27 +17,27 @@ export const meta: Route.MetaFunction = () => [
   {
     tagName: "link",
     rel: "canonical",
-    href: "https://chernyakov-coaching.com/privacy/",
+    href: `${SITE_URL}/privacy/`,
   },
 ];
 
 export default function Privacy() {
   return (
     <>
-      <section className="hero" style={{ borderTop: "none", paddingBottom: "24px" }}>
+      <section className="hero [border-top:none] pb-6">
         <div className="container">
           <h1>Privacy Policy</h1>
-          <p className="lead" style={{ maxWidth: "720px" }}>
+          <p className="lead max-w-[720px]">
             Datenschutzerklärung for chernyakov-coaching.com. This page explains what personal data
             is processed when you visit this website, on what legal basis, and what rights you have.
           </p>
-          <p style={{ color: "var(--muted)", fontSize: ".9rem" }}>
+          <p className="text-muted-foreground text-[0.9rem]">
             Last updated: <span id="policy-date">8 August 2026</span>
           </p>
         </div>
       </section>
 
-      <section style={{ borderTop: "none", paddingTop: "16px" }}>
+      <section className="[border-top:none] pt-4">
         <div className="container">
           <div className="legal-body">
             <h2>1. Controller</h2>
@@ -185,12 +185,12 @@ export default function Privacy() {
 
             <h2>6. Bot protection — Cloudflare Turnstile</h2>
             <p>
-              To protect the signup form against spam and automated abuse, this website uses{" "}
+              To protect the download form against spam and automated abuse, this website uses{" "}
               <strong>Cloudflare Turnstile</strong>, a service of Cloudflare, Inc. (address above).
-              Turnstile is only loaded on the page with the signup form. It checks whether a request
-              comes from a human by evaluating technical information about your browser and device,
-              such as your IP address and browser characteristics. Turnstile does not use cookies
-              for advertising or tracking.
+              Turnstile is only loaded on the pages with the download form. It checks whether a
+              request comes from a human by evaluating technical information about your browser and
+              device, such as your IP address and browser characteristics. Turnstile does not use
+              cookies for advertising or tracking.
             </p>
             <p>
               The legal basis is Art. 6(1)(f) GDPR (legitimate interest in protecting the signup
@@ -223,50 +223,46 @@ export default function Privacy() {
               obligations apply.
             </p>
 
-            <h2>8. Email list and free download (newsletter)</h2>
+            <h2>8. Free downloads and offers (MailerLite)</h2>
             <p>
-              You may subscribe to receive a free downloadable worksheet and occasional emails from
-              me. To do this I use <strong>MailerLite</strong>, a service of UAB "MailerLite",
-              Paupio st. 46, Vilnius, Lithuania. Subscriber data is stored on servers within the
-              European Union. A data processing agreement is in place with MailerLite.
+              The free resources on this website (worksheets and workbooks) can be downloaded after
+              entering your email address. To manage these email addresses I use{" "}
+              <strong>MailerLite</strong>, a service of UAB "MailerLite", Paupio st. 46, Vilnius,
+              Lithuania. Subscriber data is stored on servers within the European Union. A data
+              processing agreement is in place with MailerLite.
             </p>
             <p>
-              When you sign up, the email address you enter is sent to this website's server, which
-              passes it to MailerLite, where it is stored. The <strong>double opt-in</strong>{" "}
-              procedure applies: after entering your address you will receive an email asking you to
-              confirm your subscription. Only once you click the confirmation link will your address
-              be added to my list and the download sent to you. If you do not confirm, your entry is
-              deleted automatically.
-            </p>
-            <p>The signup form asks for two separate consents:</p>
-            <ul>
-              <li>
-                <strong>Delivery of the requested download (required).</strong> Consent to receive
-                the worksheet by email. This is necessary in order to send you the material you
-                asked for.
-              </li>
-              <li>
-                <strong>Newsletter (optional).</strong> Separate, freely given consent to receive
-                occasional emails containing new worksheets and tools, free resources, and
-                invitations to book a call or join a course. This box is not pre-ticked, and
-                declining it does not prevent you from receiving the download.
-              </li>
-            </ul>
-            <p>
-              In addition to your email address, the following may be stored for the purpose of
-              evidencing consent: your IP address at the time of registration and the date and time
-              of registration and confirmation.
+              <strong>Download (email required).</strong> When you request a download, the email
+              address you enter is sent to this website's server, which passes it to MailerLite. It
+              is stored together with the resource you downloaded and the date and time of the
+              download, and the download starts straight away. You will not receive any marketing
+              emails on this basis. The legal basis is Art. 6(1)(b) GDPR (providing the resource you
+              requested). This data is stored for <em>[retention period, e.g. 24 months]</em> after
+              your last download, unless you ask me to delete it earlier.
             </p>
             <p>
-              The legal basis for this processing is your consent under Art. 6(1)(a) GDPR.{" "}
+              <strong>Offers (optional).</strong> Separately, you can tick a box to receive offers,
+              new resources and occasional invitations to book a call or join a course by email.
+              This box is not ticked in advance, and declining it does not prevent you from
+              downloading the resource. If you tick it, the <strong>double opt-in</strong> procedure
+              applies: you will receive an email asking you to confirm, and only once you click the
+              confirmation link will you receive offers. The legal basis is your consent under Art.
+              6(1)(a) GDPR.
+            </p>
+            <p>
+              To evidence your consent, the following is stored with your email address: your IP
+              address at the time of the request, the date and time of your consent and of your
+              confirmation, and the version of the consent text you agreed to.
+            </p>
+            <p>
               <strong>You can withdraw your consent at any time</strong> — for example by clicking
               the unsubscribe link at the bottom of every email, or by emailing me. Withdrawal does
-              not affect the lawfulness of processing carried out before withdrawal.
+              not affect the lawfulness of processing carried out before withdrawal. After you
+              unsubscribe, you will no longer receive offers.
             </p>
             <p>
-              Your data will be stored with me until you unsubscribe, after which it will be deleted
-              from my mailing list. MailerLite analyses whether emails are opened and which links
-              are clicked, in order to understand which content is useful. Further information:{" "}
+              MailerLite analyses whether emails are opened and which links are clicked, in order to
+              understand which content is useful. Further information:{" "}
               <a
                 href="https://www.mailerlite.com/legal/privacy-policy"
                 target="_blank"

@@ -1,6 +1,6 @@
 import { AutoplayVideo } from "~/components/sections/AutoplayVideo";
 import type { Route } from "./+types/offers.personal-coaching";
-import { BOOKING } from "~/lib/site";
+import { BOOKING, SITE_URL } from "~/lib/site";
 
 export const meta: Route.MetaFunction = () => [
   {
@@ -14,7 +14,7 @@ export const meta: Route.MetaFunction = () => [
   {
     tagName: "link",
     rel: "canonical",
-    href: "https://chernyakov-coaching.com/offers/personal-coaching/",
+    href: `${SITE_URL}/offers/personal-coaching/`,
   },
 ];
 
@@ -22,7 +22,7 @@ export default function PersonalCoaching() {
   return (
     <>
       {/* Hero */}
-      <section className="hero" style={{ borderTop: "none" }}>
+      <section className="hero [border-top:none]">
         <div className="container hero-split hero-split--7030">
           <div>
             <h1>Personal Coaching</h1>
@@ -107,18 +107,9 @@ export default function PersonalCoaching() {
             </div>
           </div>
 
-          <div style={{ marginTop: "40px" }}>
-            <h3
-              style={{
-                fontFamily: "var(--font-serif)",
-                fontWeight: "600",
-                fontSize: "1.4rem",
-                marginBottom: "8px",
-              }}
-            >
-              Inside the GROW model
-            </h3>
-            <p style={{ color: "var(--ink-soft)", marginBottom: "16px" }}>
+          <div className="mt-10">
+            <h3 className="mb-2 font-serif text-[1.4rem] font-semibold">Inside the GROW model</h3>
+            <p className="text-ink-soft mb-4">
               Every session moves through four stages — building from clarity to action.
             </p>
             <ol className="grow-list">
@@ -153,7 +144,7 @@ export default function PersonalCoaching() {
             </ol>
           </div>
 
-          <p style={{ marginTop: "32px", color: "var(--ink-soft)", fontSize: ".98rem" }}>
+          <p className="mt-8 text-ink-soft text-[0.98rem]">
             While we maintain a strong macro-structure, each session is dynamic — bring the real
             challenges and goals you're facing right now, and we'll work through them with the
             framework.

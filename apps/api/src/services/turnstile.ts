@@ -1,4 +1,8 @@
+import { z } from "zod";
+
 const SITEVERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+
+const siteverifyResponseSchema = z.object({ success: z.boolean() });
 
 /** Verify a Cloudflare Turnstile token server-side. */
 export async function verifyTurnstile(
@@ -13,6 +17,6 @@ export async function verifyTurnstile(
 
   const response = await fetch(SITEVERIFY_URL, { method: "POST", body });
   if (!response.ok) return false;
-  const result = (await response.json()) as { success?: boolean };
-  return result.success === true;
+  const result = siteverifyResponseSchema.safeParse(await response.json().catch(() => null));
+  return result.success && result.data.success;
 }

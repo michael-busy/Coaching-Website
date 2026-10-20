@@ -1,7 +1,7 @@
 import { useSearchParams } from "react-router";
 import { useHydrated } from "~/hooks/use-hydrated";
 
-/** Shown when /api/downloads redirects back here with ?link=expired|invalid. */
+/** Shown when /api/downloads redirects back to a resource page with ?link=expired|invalid. */
 export function LinkStatusNotice() {
   const hydrated = useHydrated();
   const [params] = useSearchParams();
@@ -16,7 +16,7 @@ export function LinkStatusNotice() {
           ? "That download link has expired"
           : "That download link is not valid"}
       </h3>
-      <p>Enter your email below and I'll send you a fresh link.</p>
+      <p>Enter your email below to download it again.</p>
     </div>
   );
 }

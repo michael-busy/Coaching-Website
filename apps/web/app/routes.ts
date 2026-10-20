@@ -8,7 +8,7 @@ export default [
   route("offers/confidence-building", "routes/offers.confidence-building.tsx"),
   route("offers/coaching-for-leaders", "routes/offers.coaching-for-leaders.tsx"),
   route("resources", "routes/resources.tsx"),
-  route("guide", "routes/guide.tsx"),
+  route("resources/:slug", "routes/resource.tsx"),
   route("privacy", "routes/privacy.tsx"),
   route("*", "routes/not-found.tsx"),
 ] satisfies RouteConfig;

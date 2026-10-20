@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import type { Route } from "./+types/offers";
-import { BOOKING, mailto } from "~/lib/site";
+import { BOOKING, SITE_URL, mailto } from "~/lib/site";
 
 export const meta: Route.MetaFunction = () => [
   {
@@ -14,14 +14,14 @@ export const meta: Route.MetaFunction = () => [
   {
     tagName: "link",
     rel: "canonical",
-    href: "https://chernyakov-coaching.com/offers/",
+    href: `${SITE_URL}/offers/`,
   },
 ];
 
 export default function Offers() {
   return (
     <>
-      <section className="hero" style={{ borderTop: "none" }}>
+      <section className="hero [border-top:none]">
         <div className="container">
           <span className="eyebrow">Offers</span>
           <h1>Two ways to work together</h1>

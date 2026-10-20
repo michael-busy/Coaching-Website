@@ -1,5 +1,5 @@
 import type { Route } from "./+types/offers.confidence-building";
-import { BOOKING } from "~/lib/site";
+import { BOOKING, SITE_URL } from "~/lib/site";
 
 export const meta: Route.MetaFunction = () => [
   {
@@ -13,7 +13,7 @@ export const meta: Route.MetaFunction = () => [
   {
     tagName: "link",
     rel: "canonical",
-    href: "https://chernyakov-coaching.com/offers/confidence-building/",
+    href: `${SITE_URL}/offers/confidence-building/`,
   },
 ];
 
@@ -21,7 +21,7 @@ export default function ConfidenceBuilding() {
   return (
     <>
       {/* Hero */}
-      <section className="hero" style={{ borderTop: "none" }}>
+      <section className="hero [border-top:none]">
         <div className="container">
           <span className="eyebrow">Service</span>
           <h1>Confidence is a skill — learn to build it</h1>

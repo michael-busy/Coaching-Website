@@ -4,7 +4,7 @@ import { defineConfig, loadEnv } from "vite";
 
 const DEFAULT_BACKEND_URL = "http://localhost:8787";
 
-/** BACKEND_URL from apps/web/.env (or the shell), validated so a typo fails at startup. */
+/** Where the dev server proxies /api/* (BACKEND_URL in apps/web/.env). */
 function backendUrl(env: Record<string, string>): string {
   const value = env.BACKEND_URL?.trim() || DEFAULT_BACKEND_URL;
   try {
@@ -16,13 +16,10 @@ function backendUrl(env: Record<string, string>): string {
   }
 }
 
-/** Cloudflare's Turnstile test site keys (always pass / always block / force interactive). */
+/** Cloudflare's Turnstile test site keys. */
 const TURNSTILE_TEST_KEY = /^[123]x0{20}A[ABF]$/;
 
-/**
- * Deploy builds (REQUIRE_TURNSTILE_SITE_KEY=true) must carry the real Turnstile site key;
- * otherwise the site would ship the test key and every real signup would be rejected.
- */
+/** Deploy builds (REQUIRE_TURNSTILE_SITE_KEY=true) must not ship a test key. */
 function assertDeployableTurnstileKey(env: Record<string, string>) {
   if (env.REQUIRE_TURNSTILE_SITE_KEY !== "true") return;
   const key = env.VITE_TURNSTILE_SITE_KEY?.trim() ?? "";
@@ -34,15 +31,13 @@ function assertDeployableTurnstileKey(env: Record<string, string>) {
 }
 
 export default defineConfig(({ command, mode }) => {
-  // Empty prefix: also load non-VITE_ variables. They stay in this config (Node side) and are
-  // not exposed to the browser bundle; only VITE_* variables are.
+  // "" loads non-VITE_ vars too; only VITE_* reach the browser bundle.
   const env = loadEnv(mode, import.meta.dirname, "");
   if (command === "build") assertDeployableTurnstileKey(env);
 
   return {
     plugins: [tailwindcss(), reactRouter()],
     define: {
-      // Same value in the prerendered HTML and the client bundle (see SiteFooter).
       __BUILD_YEAR__: JSON.stringify(new Date().getFullYear()),
     },
     resolve: {
@@ -50,9 +45,6 @@ export default defineConfig(({ command, mode }) => {
     },
     server: {
       port: 5180,
-      // The browser always calls /api/* on this dev server, which forwards to BACKEND_URL
-      // (the local Worker by default). In production the Worker serves the pages and the API
-      // from the same origin, so no URL is needed there.
       proxy: {
         "/api": { target: backendUrl(env), changeOrigin: true },
       },

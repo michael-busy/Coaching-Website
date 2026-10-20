@@ -1,6 +1,6 @@
 import { Hono } from "hono";
 import { secureHeaders } from "hono/secure-headers";
-import { ConfigError, type AppEnv, type Bindings } from "./env";
+import { ConfigError, type AppEnv } from "./env";
 import { downloads } from "./routes/downloads";
 import { health } from "./routes/health";
 import { signup } from "./routes/signup";
@@ -20,13 +20,6 @@ app.onError((err, c) => {
   return c.json({ error: "internal_error" }, 500);
 });
 
-export default {
-  fetch(request, env, ctx) {
-    const { pathname } = new URL(request.url);
-    if (pathname === "/api" || pathname.startsWith("/api/")) {
-      return app.fetch(request, env, ctx);
-    }
-    // Only /api/* runs the Worker first (wrangler.jsonc); everything else is static assets.
-    return env.ASSETS.fetch(request);
-  },
-} satisfies ExportedHandler<Bindings>;
+// Only /api/* reaches the Worker (run_worker_first in wrangler.jsonc); all other paths are
+// served from the static assets.
+export default app;

@@ -59,7 +59,7 @@ export default function App() {
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   const notFound = isRouteErrorResponse(error) && error.status === 404;
   return (
-    <section className="hero" style={{ borderTop: "none" }}>
+    <section className="hero [border-top:none]">
       <div className="container">
         <h1>{notFound ? "Page not found" : "Something went wrong"}</h1>
         <p className="lead">
