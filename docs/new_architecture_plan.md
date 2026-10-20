@@ -65,6 +65,8 @@ MailerLite status rules (`subscriberUpdate` in `apps/api/src/services/mailerlite
 
 Every upsert adds the `Downloads` group (`MAILERLITE_DOWNLOADS_GROUP_ID`; one group for all resources, not one per resource) and the fields `downloads` (comma-separated slugs, earlier ones kept), `last_download`, `marketing_consent` (`yes` only on a tick; `no` only for new subscribers), `marketing_consent_at` and `consent_text_version` (on a tick), plus `ip_address`.
 
+**Email check (2026-10-20).** Downloads stay instant, so the address isn't proven to be real. After the bot check, `checkEmailDomain` (`apps/api/src/services/email-domain.ts`) rejects throwaway-inbox domains (the CC0 list in `disposable-email-domains-js`) and domains with no mail server (MX, then A/AAAA, over Cloudflare DNS-over-HTTPS; only the domain is sent). DNS failures let the signup through. Rejections answer `400 invalid_email`, shown on the email field. Emailing the link instead (proves the inbox) was considered and deferred.
+
 Superseded by this: the email-delivered link, the download automation, the `download_url` field, the group re-join logic and the `/guide/` page (now a 301 to `/resources/unstuck/`).
 
 ## Hosting decision: Cloudflare
@@ -89,7 +91,7 @@ Secrets are never committed.
 |-------|------|
 | Production | `wrangler secret put <NAME>`: stored encrypted in Cloudflare |
 | Local dev | `apps/api/.env` and `apps/web/.env`: git-ignored, created from the committed `.env.example` files by `pnpm env:init` |
-| CI deploy | GitHub repo secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, used by `cloudflare/wrangler-action` |
+| CI | None. CI only runs the checks; deploys run locally with `pnpm deploy` after `wrangler login` |
 
 Secret names:
 - `MAILERLITE_API_TOKEN`
@@ -163,7 +165,7 @@ Browser ──► chernyakov-coaching.com (Cloudflare DNS, GoDaddy = registrar o
 ├── packages/
 │   └── shared/                      zod schemas (SignupRequest/Response), resource catalog (slug, title, gated)
 ├── docs/                            old_architecture.md, new_architecture.md
-├── .github/workflows/ci.yml         install → typecheck → lint → test → build; deploy on main
+├── .github/workflows/ci.yml         install → typecheck → lint → format → build → test (no deploy)
 ├── pnpm-workspace.yaml              packages: apps/*, packages/*
 ├── package.json                     "packageManager": "pnpm@<pinned>", root scripts via pnpm -r / --filter
 ├── tsconfig.base.json               strict, moduleResolution bundler; apps extend it

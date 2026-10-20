@@ -62,6 +62,7 @@ export function SignupForm({
       // The response is a file attachment, so the browser downloads it and stays on this page.
       window.location.assign(result.downloadUrl);
     } else {
+      if (result.error === "invalid_email") form.setError("email", { message: result.message });
       // Turnstile tokens are single-use: get a fresh one for the next attempt.
       setTurnstileToken(null);
       setTurnstileKey((key) => key + 1);
@@ -90,7 +91,9 @@ export function SignupForm({
     );
   }
 
-  const failure = signup.data && !signup.data.ok ? signup.data : null;
+  // An invalid email is shown on the field itself, not in the error box.
+  const failure =
+    signup.data && !signup.data.ok && signup.data.error !== "invalid_email" ? signup.data : null;
   const submitting = form.formState.isSubmitting || signup.isPending;
 
   return (

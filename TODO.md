@@ -17,8 +17,6 @@ Everything production needs, and where each one goes. "Step" is the section belo
 | `MAILERLITE_API_TOKEN` | Worker secret (`wrangler secret put`) | Lets the API create subscribers | MailerLite → Integrations → API → Generate token | 3 |
 | `TURNSTILE_SECRET_KEY` | Worker secret | Server side of the bot check | Cloudflare → Turnstile → the widget | 2 |
 | `DOWNLOAD_TOKEN_SECRET` | Worker secret | Signs the download links | Make one up: `openssl rand -base64 32` | 2 |
-| `CLOUDFLARE_API_TOKEN` | GitHub secret | Lets CI deploy | Cloudflare → My Profile → API Tokens → "Edit Cloudflare Workers" | 2 |
-| `CLOUDFLARE_ACCOUNT_ID` | GitHub secret | Which Cloudflare account to deploy to | Cloudflare dashboard sidebar | 2 |
 
 **Plain config (not secret).**
 
@@ -27,7 +25,7 @@ Everything production needs, and where each one goes. "Step" is the section belo
 | `MAILERLITE_DOWNLOADS_GROUP_ID` | `apps/api/wrangler.jsonc` → `vars` | ID of the `Downloads` group (already set) | — |
 | `MAILERLITE_OFFERS_GROUP_ID` | `apps/api/wrangler.jsonc` → `vars` | ID of the `Offers` group (already set) | — |
 | `DOWNLOAD_LINK_TTL_HOURS` | `apps/api/wrangler.jsonc` → `vars` | `24` (already set) | — |
-| `TURNSTILE_SITE_KEY` | GitHub repository **variable** | Public half of the Turnstile widget, built into the pages | 2 |
+| `VITE_TURNSTILE_SITE_KEY` | Typed in front of `pnpm deploy` (step 4) | Public half of the Turnstile widget, built into the pages | 2 |
 
 **Created in dashboards.** These have no value to copy, but the code expects them to exist under these exact names.
 
@@ -38,7 +36,6 @@ Everything production needs, and where each one goes. "Step" is the section belo
 | Groups `Downloads` and `Offers` (done; `TEST_Downloads` / `TEST_Offers` for local tests) | MailerLite | 3 |
 | Text fields `downloads`, `last_download`, `marketing_consent`, `marketing_consent_at`, `consent_text_version` (done) | MailerLite | 3 |
 | "Double opt-in for API and integrations" turned on | MailerLite → Subscribe settings | 3 |
-| Environment `production` with required reviewers | GitHub → Settings → Environments | 2 |
 
 **Local development needs none of these.** `pnpm dev` creates `apps/*/.env` with test values: MailerLite runs in dry-run mode and Turnstile uses Cloudflare's test keys. To try a real MailerLite account locally, set `MAILERLITE_DRY_RUN=false` in `apps/api/.env` and add the token and **test** group IDs there.
 
@@ -54,7 +51,8 @@ Everything production needs, and where each one goes. "Step" is the section belo
   - set "Last updated" on launch day.
 - [ ] **Copy review:**
   - the `/resources/` cards and the two resource pages;
-  - the offers checkbox wording (`apps/web/app/features/signup/SignupForm.tsx`). If it changes later, bump `OFFERS_CONSENT_VERSION` in `packages/shared/src/signup.ts`.
+  - the offers checkbox wording (`apps/web/app/features/signup/SignupForm.tsx`). If it changes later, bump `OFFERS_CONSENT_VERSION` in `packages/shared/src/signup.ts`;
+  - the two new email-field errors (`apps/api/src/routes/signup.ts`): "Please use your regular email address. Temporary inboxes can't be used." and "That email address can't receive mail. Please check it for typos."
 - [ ] **Public repo:** the PDFs can still be downloaded from GitHub's history. Make the repo private, or accept this.
 - [ ] **Protect `main`** (needs repo admin): GitHub → Settings → Branches → Add rule for `main` → tick "Require a pull request before merging" and "Require status checks to pass", and select **"Typecheck, lint, build and test"**. Then a PR can't be merged while tests fail.
 - [ ] **Removed files:** the CV, the ICF study guide, and unused videos and photos are gone from the branch. Restore any you want with `git show 795db31:<path> > <path>`.
@@ -62,12 +60,8 @@ Everything production needs, and where each one goes. "Step" is the section belo
 ## 2. Cloudflare setup
 
 - [ ] **M** Create a free Cloudflare account with 2FA, and add the site `chernyakov-coaching.com`. **Don't change the nameservers yet** (that's step 5).
-- [ ] **M** Create a deploy API token (My Profile → API Tokens → "Edit Cloudflare Workers") and note the Account ID.
-- [ ] **M/D** In GitHub (Settings → Secrets and variables → Actions):
-  - secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`;
-  - an environment named `production` with **required reviewers**.
 - [ ] **M/D** **R2:** enable it (it asks for a card, but 10 GB is free) and create a **private** bucket `coaching-downloads`. Then **D** runs `pnpm r2:seed --remote` to upload both PDFs.
-- [ ] **M/D** **Turnstile:** create a "Managed" widget for `chernyakov-coaching.com` and the `*.workers.dev` preview host. Save the **site key** as GitHub repository variable `TURNSTILE_SITE_KEY`; the secret key is set in the next step.
+- [ ] **M/D** **Turnstile:** create a "Managed" widget for `chernyakov-coaching.com` and the `*.workers.dev` preview host. Note the **site key** for the deploy command (step 4); the secret key is set in the next step.
 - [ ] **D** Log in and set the Worker secrets. Each command prompts for the value:
   ```bash
   cd apps/api
@@ -99,7 +93,7 @@ Everything production needs, and where each one goes. "Step" is the section belo
 
 ## 4. Preview deploy (no DNS change yet)
 
-- [ ] **D** Deploy with `VITE_TURNSTILE_SITE_KEY=<site key> pnpm deploy`, or run Actions → CI → Run workflow with "deploy" ticked.
+- [ ] **D** Deploy from your machine (after `wrangler login`): `VITE_TURNSTILE_SITE_KEY=<site key> pnpm deploy`.
 - [ ] **D/M** On the `*.workers.dev` URL, check (with `pnpm exec wrangler tail` running, showing no errors):
   - every page loads, and `/api/health` returns `{"ok":true}`;
   - for **both** resources: `/resources/` → card → enter an email → the download starts;

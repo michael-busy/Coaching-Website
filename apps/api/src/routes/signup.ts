@@ -2,6 +2,7 @@ import { zValidator } from "@hono/zod-validator";
 import { OFFERS_CONSENT_VERSION, signupRequestSchema, type SignupResponse } from "@coaching/shared";
 import { Hono } from "hono";
 import { downloadLinkTtlSeconds, requireEnv, type AppEnv } from "../env";
+import { checkEmailDomain, type EmailDomainCheck } from "../services/email-domain";
 import {
   getSubscriber,
   mergeDownloads,
@@ -18,6 +19,11 @@ function failure(
 ): SignupResponse {
   return { ok: false, error, message };
 }
+
+const EMAIL_DOMAIN_MESSAGES: Record<Exclude<EmailDomainCheck, "ok">, string> = {
+  disposable: "Please use your regular email address. Temporary inboxes can't be used.",
+  no_mail: "That email address can't receive mail. Please check it for typos.",
+};
 
 export const signup = new Hono<AppEnv>().post(
   "/",
@@ -48,6 +54,12 @@ export const signup = new Hono<AppEnv>().post(
     );
     if (!captchaOk) {
       return c.json(failure("captcha_failed", "The bot check failed. Please try again."), 403);
+    }
+
+    // After the bot check, so the endpoint can't be used to probe domains.
+    const emailDomain = await checkEmailDomain(body.email);
+    if (emailDomain !== "ok") {
+      return c.json(failure("invalid_email", EMAIL_DOMAIN_MESSAGES[emailDomain]), 400);
     }
 
     // Resolve config and sign the link before touching MailerLite, so a misconfiguration never
@@ -99,7 +111,7 @@ export const signup = new Hono<AppEnv>().post(
     if (!result.ok) {
       console.error("MailerLite request failed", { status: result.status, kind: result.kind });
       if (result.kind === "invalid") {
-        return c.json(failure("invalid_request", "That email address was not accepted."), 400);
+        return c.json(failure("invalid_email", "That email address was not accepted."), 400);
       }
       if (result.kind === "rate_limited") {
         return c.json(

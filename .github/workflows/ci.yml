@@ -3,18 +3,6 @@ name: CI
 on:
   push:
   pull_request:
-  workflow_dispatch:
-    inputs:
-      deploy:
-        description: "Deploy to Cloudflare after the checks pass"
-        type: boolean
-        default: false
-
-concurrency:
-  # head_ref for pull requests, ref for pushes: a push and its PR share one group, so the
-  # duplicate run is cancelled.
-  group: ci-${{ github.head_ref || github.ref_name }}
-  cancel-in-progress: true
 
 jobs:
   check:
@@ -33,39 +21,4 @@ jobs:
       - run: pnpm lint
       - run: pnpm format:check
       - run: pnpm build
-        env:
-          VITE_TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
       - run: pnpm test
-      - uses: actions/upload-artifact@v7
-        with:
-          name: web-build
-          path: apps/web/build/client
-          retention-days: 7
-
-  # Manual only. Runs from any branch so the preview deploy can happen before the merge to
-  # main (TODO.md §4); protect the `production` environment with required reviewers.
-  deploy:
-    needs: check
-    if: github.event_name == 'workflow_dispatch' && inputs.deploy
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with:
-          node-version-file: .nvmrc
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-        env:
-          VITE_TURNSTILE_SITE_KEY: ${{ vars.TURNSTILE_SITE_KEY }}
-          # Fails the build if the real site key is missing (vite.config.ts).
-          REQUIRE_TURNSTILE_SITE_KEY: "true"
-      - uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: apps/api
-          packageManager: pnpm
-          command: deploy

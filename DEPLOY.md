@@ -29,16 +29,9 @@ At cutover (`TODO.md` §5):
 1. Uncomment the `routes` block in `apps/api/wrangler.jsonc`.
 2. Deploy again. Cloudflare attaches `chernyakov-coaching.com` and `www` to the Worker and creates the DNS records.
 
-## Deploy from GitHub Actions
+## CI
 
-`.github/workflows/ci.yml` runs typecheck, lint, format check, build and tests on every push except to `main`.
-
-To deploy from CI:
-1. Run the workflow manually (Actions → CI → Run workflow) with **deploy** ticked.
-2. It needs these settings in the GitHub repo:
-   - secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`;
-   - repository variable `TURNSTILE_SITE_KEY`;
-   - an environment named `production`.
+`.github/workflows/ci.yml` only checks: typecheck, lint, format check, build and tests on every push and pull request. It needs no secrets and never deploys; deploys run from a developer's machine with `pnpm deploy`.
 
 ## Secrets
 

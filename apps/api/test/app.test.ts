@@ -12,10 +12,12 @@ const validBody = {
 
 type FetchCall = { url: string; init: RequestInit | undefined };
 
-/** Stub global fetch: Turnstile siteverify, MailerLite subscriber lookup and upsert. */
+/** Stub global fetch: Turnstile siteverify, DNS (MX), MailerLite subscriber lookup and upsert. */
 function stubUpstreams(
   options: {
     turnstile?: boolean | "network-error";
+    /** DNS answer for the email domain: a mail server (default) or no such domain. */
+    dns?: "mx" | "nxdomain";
     existingStatus?: string | null;
     existingDownloads?: string | null;
     lookupStatus?: number;
@@ -32,6 +34,11 @@ function stubUpstreams(
       if (url.includes("challenges.cloudflare.com")) {
         if (options.turnstile === "network-error") throw new TypeError("fetch failed");
         return Response.json({ success: options.turnstile ?? true });
+      }
+      if (url.startsWith("https://cloudflare-dns.com/dns-query")) {
+        return options.dns === "nxdomain"
+          ? Response.json({ Status: 3 })
+          : Response.json({ Status: 0, Answer: [{ type: 15, data: "10 mx.example.com." }] });
       }
       if (url.startsWith("https://connect.mailerlite.com/api/subscribers/")) {
         if (options.lookupStatus) return Response.json({}, { status: options.lookupStatus });
@@ -190,9 +197,33 @@ describe("POST /api/signup", () => {
     expect(calls.some((call) => call.url.includes("mailerlite"))).toBe(false);
   });
 
-  it("maps a MailerLite validation error to 400", async () => {
+  it("rejects a throwaway inbox without looking up DNS or calling MailerLite", async () => {
+    const calls = stubUpstreams();
+    const res = await postSignup({ ...validBody, email: "someone@mailinator.com" });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ ok: false, error: "invalid_email" });
+    expect(calls.some((call) => !call.url.includes("challenges.cloudflare.com"))).toBe(false);
+  });
+
+  it("rejects a domain that can't receive mail before calling MailerLite", async () => {
+    const calls = stubUpstreams({ dns: "nxdomain" });
+    const res = await postSignup({ ...validBody, email: "someone@no-such-domain.example" });
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ ok: false, error: "invalid_email" });
+    expect(calls.some((call) => call.url.includes("mailerlite"))).toBe(false);
+  });
+
+  it("checks the domain only after the bot check passes", async () => {
+    const calls = stubUpstreams({ turnstile: false });
+    await postSignup(validBody);
+    expect(calls.some((call) => call.url.includes("cloudflare-dns.com"))).toBe(false);
+  });
+
+  it("maps a MailerLite validation error to 400 invalid_email", async () => {
     stubUpstreams({ upsertStatus: 422 });
-    expect((await postSignup(validBody)).status).toBe(400);
+    const res = await postSignup(validBody);
+    expect(res.status).toBe(400);
+    expect(await res.json()).toMatchObject({ ok: false, error: "invalid_email" });
   });
 
   it("maps a MailerLite outage to 502", async () => {

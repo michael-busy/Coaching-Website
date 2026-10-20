@@ -19,6 +19,8 @@ export type SignupRequest = z.infer<typeof signupRequestSchema>;
 
 export const signupErrorCodes = [
   "invalid_request",
+  /** The address can't receive mail or is a throwaway inbox; shown on the email field. */
+  "invalid_email",
   "captcha_failed",
   "rate_limited",
   "upstream_error",

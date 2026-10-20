@@ -12,6 +12,7 @@
   "dependencies": {
     "@coaching/shared": "workspace:*",
     "@hono/zod-validator": "^0.9.1",
+    "disposable-email-domains-js": "^1.26.0",
     "hono": "^4.13.13",
     "zod": "^4.6.7"
   },

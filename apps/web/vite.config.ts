@@ -43,6 +43,12 @@ export default defineConfig(({ command, mode }) => {
     resolve: {
       tsconfigPaths: true,
     },
+    // Pre-bundle every dependency when the dev server starts. Otherwise Vite finds them on the
+    // first page visit, re-bundles and reloads, and a page opened meanwhile never hydrates
+    // (the form and checkbox do nothing).
+    optimizeDeps: {
+      entries: ["app/**/*.tsx"],
+    },
     server: {
       port: 5180,
       proxy: {
