@@ -51,7 +51,7 @@ The owner asked for every resource on `/resources/` to open its own page where t
 | Delivery | Instant: `POST /api/signup` returns a signed `downloadUrl` (default 24 h) and the browser downloads it |
 | MailerLite | Our API → MailerLite API |
 | Scope | All resources; no public PDFs (R2 only, `pnpm r2:seed`) |
-| No consent | Still stored: resource group, `marketing_consent=no` |
+| No consent | Still stored: `Downloads` group, `marketing_consent=no` |
 
 MailerLite status rules (`subscriberUpdate` in `apps/api/src/services/mailerlite.ts`; the API looks the subscriber up first):
 
@@ -63,7 +63,7 @@ MailerLite status rules (`subscriberUpdate` in `apps/api/src/services/mailerlite
 | active / unconfirmed / other | yes | no status change + Offers group |
 | any | no | no status change, no Offers group |
 
-Every upsert adds the resource's group (`MAILERLITE_RESOURCE_GROUP_IDS`) and the fields `last_download`, `marketing_consent` (`yes` only on a tick; `no` only for new subscribers), `marketing_consent_at` and `consent_text_version` (on a tick), plus `ip_address`.
+Every upsert adds the `Downloads` group (`MAILERLITE_DOWNLOADS_GROUP_ID`; one group for all resources, not one per resource) and the fields `downloads` (comma-separated slugs, earlier ones kept), `last_download`, `marketing_consent` (`yes` only on a tick; `no` only for new subscribers), `marketing_consent_at` and `consent_text_version` (on a tick), plus `ip_address`.
 
 Superseded by this: the email-delivered link, the download automation, the `download_url` field, the group re-join logic and the `/guide/` page (now a 301 to `/resources/unstuck/`).
 

@@ -42,7 +42,7 @@ The first run creates `apps/api/.env` and `apps/web/.env` from their `.env.examp
 | `apps/web/.env` | `VITE_TURNSTILE_SITE_KEY` | Public Turnstile site key. Empty = Cloudflare test key. |
 | shell, set by `pnpm deploy` / CI deploy | `REQUIRE_TURNSTILE_SITE_KEY=true` | Makes the build fail if `VITE_TURNSTILE_SITE_KEY` is empty or a test key. Not needed locally. |
 | `apps/api/.env` | `MAILERLITE_DRY_RUN` | `true` = skip MailerLite and log the link. Local only. |
-| `apps/api/.env` | `MAILERLITE_API_TOKEN`, `MAILERLITE_RESOURCE_GROUP_IDS` (JSON: slug → group id), `MAILERLITE_OFFERS_GROUP_ID` | Needed when dry run is off. Use test groups. |
+| `apps/api/.env` | `MAILERLITE_API_TOKEN`, `MAILERLITE_DOWNLOADS_GROUP_ID`, `MAILERLITE_OFFERS_GROUP_ID` | Needed when dry run is off. Use test groups. |
 | `apps/api/.env` | `TURNSTILE_SECRET_KEY`, `DOWNLOAD_TOKEN_SECRET`, `DOWNLOAD_LINK_TTL_HOURS` | Bot check secret, link signing secret, link lifetime in hours (required, > 0) |
 
 Shell variables override the files, for example `BACKEND_URL=https://….workers.dev pnpm dev:frontend`.

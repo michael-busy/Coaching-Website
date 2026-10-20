@@ -9,11 +9,18 @@ export type MailerLiteFailure = {
 };
 
 const subscriberResponseSchema = z.object({
-  /** active | unsubscribed | unconfirmed | bounced | junk */
-  data: z.object({ status: z.string() }),
+  data: z.object({
+    /** active | unsubscribed | unconfirmed | bounced | junk */
+    status: z.string(),
+    fields: z.object({ downloads: z.string().nullish() }).optional(),
+  }),
 });
 
-export type ExistingSubscriber = z.infer<typeof subscriberResponseSchema>["data"];
+export type ExistingSubscriber = {
+  status: string;
+  /** The `downloads` field: comma-separated resource slugs. */
+  downloads?: string;
+};
 
 function headers(apiToken: string): HeadersInit {
   return {
@@ -42,7 +49,20 @@ export async function getSubscriber(options: {
 
   const body = subscriberResponseSchema.safeParse(await response.json().catch(() => null));
   if (!body.success) return { ok: false, kind: "upstream", status: response.status };
-  return { ok: true, subscriber: { status: body.data.data.status } };
+  const { status, fields } = body.data.data;
+  return {
+    ok: true,
+    subscriber: fields?.downloads ? { status, downloads: fields.downloads } : { status },
+  };
+}
+
+/** Adds `slug` to a comma-separated `downloads` field value, keeping earlier downloads. */
+export function mergeDownloads(existing: string | undefined, slug: string): string {
+  const slugs = (existing ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return (slugs.includes(slug) ? slugs : [...slugs, slug]).join(",");
 }
 
 export type SubscriberUpdate = {

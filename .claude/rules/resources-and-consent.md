@@ -15,8 +15,9 @@ paths:
 1. `packages/shared/src/resources.ts`: slug, title, `r2Key`, `fileName`.
 2. `apps/web/app/lib/resources.tsx`: page copy (the type forces an entry per slug).
 3. `scripts/seed-r2.mjs`: the source file for its `r2Key`.
-4. `TODO.md` §3: a MailerLite group for it; `MAILERLITE_RESOURCE_GROUP_IDS` needs its id.
-5. `public/sitemap.xml`: the new `/resources/<slug>/` page.
+4. `public/sitemap.xml`: the new `/resources/<slug>/` page.
+
+No MailerLite change is needed: every downloader joins the one `Downloads` group, and the slug is added to their `downloads` field.
 
 **Consent (GDPR) — never break these:**
 - The download never depends on the offers checkbox. The box stays optional and unticked.

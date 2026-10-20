@@ -22,10 +22,7 @@ export function makeEnv(overrides: Partial<Bindings> = {}): Bindings {
   return {
     DOWNLOADS: bucket as unknown as R2Bucket,
     MAILERLITE_API_TOKEN: "ml-token",
-    MAILERLITE_RESOURCE_GROUP_IDS: JSON.stringify({
-      "four-goals": "group-four-goals",
-      unstuck: "group-unstuck",
-    }),
+    MAILERLITE_DOWNLOADS_GROUP_ID: "group-downloads",
     MAILERLITE_OFFERS_GROUP_ID: "group-offers",
     TURNSTILE_SECRET_KEY: "turnstile-secret",
     DOWNLOAD_TOKEN_SECRET: SECRET,

@@ -1,5 +1,3 @@
-import { z } from "zod";
-
 /** Worker bindings, secrets and vars (see wrangler.jsonc and .env.example). */
 export interface Bindings {
   /** Private R2 bucket with the downloadable PDFs. */
@@ -12,8 +10,8 @@ export interface Bindings {
   DOWNLOAD_TOKEN_SECRET: string;
 
   // Vars
-  /** JSON: resource slug → MailerLite group id. */
-  MAILERLITE_RESOURCE_GROUP_IDS: string;
+  /** MailerLite group every downloader joins; the `downloads` field says what they got. */
+  MAILERLITE_DOWNLOADS_GROUP_ID: string;
   MAILERLITE_OFFERS_GROUP_ID: string;
   DOWNLOAD_LINK_TTL_HOURS: string;
   /** Local dev only: "true" skips MailerLite and logs the payload. */
@@ -24,25 +22,6 @@ export type AppEnv = { Bindings: Bindings };
 
 export class ConfigError extends Error {
   override name = "ConfigError";
-}
-
-const resourceGroupIdsSchema = z.record(z.string(), z.string().min(1));
-
-export function resourceGroupId(env: Bindings, slug: string): string {
-  const raw = requireEnv(env, "MAILERLITE_RESOURCE_GROUP_IDS");
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    throw new ConfigError("MAILERLITE_RESOURCE_GROUP_IDS is not valid JSON");
-  }
-  const groups = resourceGroupIdsSchema.safeParse(parsed);
-  if (!groups.success) {
-    throw new ConfigError('MAILERLITE_RESOURCE_GROUP_IDS must look like {"<slug>": "<group id>"}');
-  }
-  const id = groups.data[slug];
-  if (!id) throw new ConfigError(`MAILERLITE_RESOURCE_GROUP_IDS has no group for "${slug}"`);
-  return id;
 }
 
 /** DOWNLOAD_LINK_TTL_HOURS as a positive number of seconds. */

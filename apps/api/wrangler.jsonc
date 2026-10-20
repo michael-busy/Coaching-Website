@@ -26,9 +26,9 @@
 
   // Non-secret configuration. Secrets are set with `wrangler secret put` (see TODO.md §2).
   "vars": {
-    // JSON: resource slug → MailerLite "Download: …" group id (TODO.md §3).
-    "MAILERLITE_RESOURCE_GROUP_IDS": "",
-    "MAILERLITE_OFFERS_GROUP_ID": "",
+    // MailerLite group ids (TODO.md §3).
+    "MAILERLITE_DOWNLOADS_GROUP_ID": "201853598704862665",
+    "MAILERLITE_OFFERS_GROUP_ID": "201851915765548127",
     "DOWNLOAD_LINK_TTL_HOURS": "24",
   },
 

@@ -24,12 +24,10 @@ Everything production needs, and where each one goes. "Step" is the section belo
 
 | Name | Goes in | Value | Step |
 |------|---------|-------|------|
-| `MAILERLITE_RESOURCE_GROUP_IDS` | `apps/api/wrangler.jsonc` → `vars` | `{"four-goals":"<id>","unstuck":"<id>"}`, the two "Download: …" group IDs | 3 |
-| `MAILERLITE_OFFERS_GROUP_ID` | `apps/api/wrangler.jsonc` → `vars` | ID of the `Offers` group | 3 |
+| `MAILERLITE_DOWNLOADS_GROUP_ID` | `apps/api/wrangler.jsonc` → `vars` | ID of the `Downloads` group (already set) | — |
+| `MAILERLITE_OFFERS_GROUP_ID` | `apps/api/wrangler.jsonc` → `vars` | ID of the `Offers` group (already set) | — |
 | `DOWNLOAD_LINK_TTL_HOURS` | `apps/api/wrangler.jsonc` → `vars` | `24` (already set) | — |
 | `TURNSTILE_SITE_KEY` | GitHub repository **variable** | Public half of the Turnstile widget, built into the pages | 2 |
-
-Until the two MailerLite group values are filled in, every download fails with `server_misconfigured`.
 
 **Created in dashboards.** These have no value to copy, but the code expects them to exist under these exact names.
 
@@ -37,8 +35,8 @@ Until the two MailerLite group values are filled in, every download fails with `
 |------|-------|------|
 | Private R2 bucket `coaching-downloads`, with both PDFs (`pnpm r2:seed --remote`) | Cloudflare | 2 |
 | "Managed" Turnstile widget for `chernyakov-coaching.com` and `*.workers.dev` | Cloudflare | 2 |
-| Groups `Download: The Four Goals Workbook`, `Download: The Unstuck Question Toolkit`, `Offers` | MailerLite | 3 |
-| Text fields `marketing_consent`, `marketing_consent_at`, `consent_text_version`, `last_download` | MailerLite | 3 |
+| Groups `Downloads` and `Offers` (done; `TEST_Downloads` / `TEST_Offers` for local tests) | MailerLite | 3 |
+| Text fields `downloads`, `last_download`, `marketing_consent`, `marketing_consent_at`, `consent_text_version` (done) | MailerLite | 3 |
 | "Double opt-in for API and integrations" turned on | MailerLite → Subscribe settings | 3 |
 | Environment `production` with required reviewers | GitHub → Settings → Environments | 2 |
 
@@ -82,14 +80,10 @@ Until the two MailerLite group values are filled in, every download fails with `
 ## 3. MailerLite setup
 
 - [ ] **M** Create an API token (Integrations → API). Keep it in a password manager and give it to the developer for `wrangler secret put`.
-- [ ] **M** Create these **groups**:
-  - `Download: The Four Goals Workbook`
-  - `Download: The Unstuck Question Toolkit`
-  - `Offers`
-- [ ] **M** Create these **custom fields** (type text): `marketing_consent`, `marketing_consent_at`, `consent_text_version`, `last_download`.
-- [ ] **D** Put the group IDs into `apps/api/wrangler.jsonc` → `vars`. Until they're set, downloads fail with `server_misconfigured`.
-  - `MAILERLITE_RESOURCE_GROUP_IDS` = `"{\"four-goals\":\"<id>\",\"unstuck\":\"<id>\"}"`
-  - `MAILERLITE_OFFERS_GROUP_ID` = `"<id>"`
+- [x] **M** **Groups:** `Downloads` and `Offers` (IDs in `wrangler.jsonc`), plus `TEST_Downloads` and `TEST_Offers` for local tests (IDs in `apps/api/.env`).
+  - Every downloader joins `Downloads`; the `downloads` field lists what they got (e.g. `four-goals,unstuck`). For "everyone who got the workbook", make a segment: `downloads` contains `four-goals`.
+- [x] **M** **Custom fields** (type text): `downloads`, `last_download`, `marketing_consent`, `marketing_consent_at`, `consent_text_version`.
+- [x] **D** Put the group IDs into `apps/api/wrangler.jsonc` → `vars`. If a group is ever recreated, its ID changes: update it there, or downloads fail with `server_misconfigured`.
 - [ ] **M** Turn on **"Double opt-in for API and integrations"** (Account settings → Subscribe settings). Reword the confirmation email to "confirm you'd like to receive offers". Optionally, set the page after confirmation to `https://chernyakov-coaching.com/resources/`.
 - [ ] **M** From now on, send offers **only to the `Offers` group**. People who didn't tick the box are stored as `unsubscribed` and can't be emailed.
 - [ ] **D** Test with a test group and `MAILERLITE_DRY_RUN=false` in `apps/api/.env`:

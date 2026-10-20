@@ -51,7 +51,7 @@ pnpm exec wrangler secret put TURNSTILE_SECRET_KEY
 pnpm exec wrangler secret put DOWNLOAD_TOKEN_SECRET
 ```
 
-Plain variables (`MAILERLITE_RESOURCE_GROUP_IDS`, `MAILERLITE_OFFERS_GROUP_ID`, `DOWNLOAD_LINK_TTL_HOURS`) live in `wrangler.jsonc` under `vars`.
+Plain variables (`MAILERLITE_DOWNLOADS_GROUP_ID`, `MAILERLITE_OFFERS_GROUP_ID`, `DOWNLOAD_LINK_TTL_HOURS`) live in `wrangler.jsonc` under `vars`.
 
 ## Rollback
 
@@ -63,7 +63,7 @@ pnpm exec wrangler rollback <version-id>
 
 ## Troubleshooting
 
-- **Signup returns 500 `server_misconfigured`.** A secret or var is missing, or `MAILERLITE_RESOURCE_GROUP_IDS` is not valid JSON or has no entry for the resource. Check the Worker's settings in the Cloudflare dashboard, or the logs (`pnpm exec wrangler tail`).
+- **Signup returns 500 `server_misconfigured`.** A secret or var is missing (for example `MAILERLITE_DOWNLOADS_GROUP_ID`). Check the Worker's settings in the Cloudflare dashboard, or the logs (`pnpm exec wrangler tail`).
 - **Signup returns 403 `captcha_failed`.** The Turnstile site key in the build and the secret key on the Worker are not from the same widget, or the widget's hostname list is missing the domain.
 - **Download link redirects to `/resources/<slug>/?link=invalid`.** `DOWNLOAD_TOKEN_SECRET` changed after the link was issued, or the link was cut off. If it redirects to `?link=expired`, the link is older than `DOWNLOAD_LINK_TTL_HOURS`. Either way, entering the email again gives a fresh link.
 - **Download returns 404.** The object is missing from the R2 bucket `coaching-downloads`. See `TODO.md` §2.

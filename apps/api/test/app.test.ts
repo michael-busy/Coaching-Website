@@ -17,6 +17,7 @@ function stubUpstreams(
   options: {
     turnstile?: boolean | "network-error";
     existingStatus?: string | null;
+    existingDownloads?: string | null;
     lookupStatus?: number;
     lookupBody?: unknown;
     upsertStatus?: number;
@@ -38,7 +39,13 @@ function stubUpstreams(
         const status = options.existingStatus ?? null;
         return status === null
           ? Response.json({ message: "Not found" }, { status: 404 })
-          : Response.json({ data: { id: "sub-1", status } });
+          : Response.json({
+              data: {
+                id: "sub-1",
+                status,
+                fields: { downloads: options.existingDownloads ?? null },
+              },
+            });
       }
       if (url === "https://connect.mailerlite.com/api/subscribers") {
         return Response.json({ data: { id: "sub-1" } }, { status: options.upsertStatus ?? 201 });
@@ -94,16 +101,17 @@ describe("POST /api/signup", () => {
     expect(await download.text()).toBe("%PDF-1.7 four goals");
   });
 
-  it("new subscriber with offers consent: unconfirmed, resource + Offers groups, consent evidence", async () => {
+  it("new subscriber with offers consent: unconfirmed, Downloads + Offers groups, consent evidence", async () => {
     const calls = stubUpstreams();
     await postSignup({ ...validBody, consentOffers: true });
     const payload = upsertPayload(calls);
     expect(payload).toMatchObject({
       email: "someone@example.com",
       status: "unconfirmed",
-      groups: ["group-four-goals", "group-offers"],
+      groups: ["group-downloads", "group-offers"],
       ip_address: "203.0.113.7",
       fields: {
+        downloads: "four-goals",
         last_download: "four-goals",
         marketing_consent: "yes",
         consent_text_version: "offers-v1",
@@ -122,8 +130,8 @@ describe("POST /api/signup", () => {
     const payload = upsertPayload(calls);
     expect(payload).toMatchObject({
       status: "unsubscribed",
-      groups: ["group-four-goals"],
-      fields: { last_download: "four-goals", marketing_consent: "no" },
+      groups: ["group-downloads"],
+      fields: { downloads: "four-goals", last_download: "four-goals", marketing_consent: "no" },
     });
     expect(payload.fields).not.toHaveProperty("marketing_consent_at");
   });
@@ -133,8 +141,21 @@ describe("POST /api/signup", () => {
     await postSignup({ ...validBody, resource: "unstuck" });
     const payload = upsertPayload(calls);
     expect(payload).not.toHaveProperty("status");
-    expect(payload.groups).toEqual(["group-unstuck"]);
-    expect(payload.fields).toEqual({ last_download: "unstuck" });
+    expect(payload.groups).toEqual(["group-downloads"]);
+    expect(payload.fields).toEqual({ downloads: "unstuck", last_download: "unstuck" });
+  });
+
+  it("existing subscriber keeps earlier downloads in the downloads field", async () => {
+    const calls = stubUpstreams({
+      existingStatus: "active",
+      existingDownloads: "four-goals",
+      upsertStatus: 200,
+    });
+    await postSignup({ ...validBody, resource: "unstuck" });
+    expect(upsertPayload(calls).fields).toMatchObject({
+      downloads: "four-goals,unstuck",
+      last_download: "unstuck",
+    });
   });
 
   it("existing unsubscribed subscriber who now consents is resubscribed via double opt-in", async () => {
@@ -143,7 +164,7 @@ describe("POST /api/signup", () => {
     expect(upsertPayload(calls)).toMatchObject({
       status: "unconfirmed",
       resubscribe: true,
-      groups: ["group-four-goals", "group-offers"],
+      groups: ["group-downloads", "group-offers"],
     });
   });
 
@@ -225,19 +246,12 @@ describe("POST /api/signup", () => {
     expect((await postSignup(validBody, env)).status).toBe(429);
   });
 
-  it("returns 500 without calling MailerLite when the resource has no group", async () => {
+  it("returns 500 without calling MailerLite when the Downloads group is missing", async () => {
     const calls = stubUpstreams();
-    const env = makeEnv({ MAILERLITE_RESOURCE_GROUP_IDS: JSON.stringify({ unstuck: "g" }) });
-    const res = await postSignup(validBody, env);
+    const res = await postSignup(validBody, makeEnv({ MAILERLITE_DOWNLOADS_GROUP_ID: "" }));
     expect(res.status).toBe(500);
     expect(await res.json()).toEqual({ error: "server_misconfigured" });
     expect(calls.some((call) => call.url.includes("mailerlite"))).toBe(false);
-  });
-
-  it("returns 500 when the group config is not JSON", async () => {
-    stubUpstreams();
-    const res = await postSignup(validBody, makeEnv({ MAILERLITE_RESOURCE_GROUP_IDS: "nope" }));
-    expect(res.status).toBe(500);
   });
 
   it("skips MailerLite in dry-run mode but still returns the link", async () => {
@@ -250,7 +264,7 @@ describe("POST /api/signup", () => {
     expect(calls.some((call) => call.url.includes("mailerlite"))).toBe(false);
     expect(log).toHaveBeenCalledWith(
       expect.stringContaining("[dry run]"),
-      expect.objectContaining({ groups: ["group-four-goals", "group-offers"] }),
+      expect.objectContaining({ groups: ["group-downloads", "group-offers"] }),
     );
     log.mockRestore();
   });

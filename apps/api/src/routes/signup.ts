@@ -1,9 +1,10 @@
 import { zValidator } from "@hono/zod-validator";
 import { OFFERS_CONSENT_VERSION, signupRequestSchema, type SignupResponse } from "@coaching/shared";
 import { Hono } from "hono";
-import { downloadLinkTtlSeconds, requireEnv, resourceGroupId, type AppEnv } from "../env";
+import { downloadLinkTtlSeconds, requireEnv, type AppEnv } from "../env";
 import {
   getSubscriber,
+  mergeDownloads,
   subscriberUpdate,
   upsertSubscriber,
   type ExistingSubscriber,
@@ -57,12 +58,15 @@ export const signup = new Hono<AppEnv>().post(
       Math.floor(Date.now() / 1000) + downloadLinkTtlSeconds(c.env),
     );
     const downloadUrl = `/api/downloads/${body.resource}?${new URLSearchParams({ t: token })}`;
-    const resourceGroup = resourceGroupId(c.env, body.resource);
+    const downloadsGroup = requireEnv(c.env, "MAILERLITE_DOWNLOADS_GROUP_ID");
     const offersGroup = body.consentOffers ? requireEnv(c.env, "MAILERLITE_OFFERS_GROUP_ID") : null;
 
     const upsertPayload = (existing: ExistingSubscriber | null) => {
       const update = subscriberUpdate(existing, body.consentOffers);
-      const fields: Record<string, string> = { last_download: body.resource };
+      const fields: Record<string, string> = {
+        downloads: mergeDownloads(existing?.downloads, body.resource),
+        last_download: body.resource,
+      };
       if (body.consentOffers) {
         fields.marketing_consent = "yes";
         fields.marketing_consent_at = new Date().toISOString();
@@ -73,7 +77,7 @@ export const signup = new Hono<AppEnv>().post(
       }
       return {
         email: body.email,
-        groups: [resourceGroup, ...(update.addToOffers && offersGroup ? [offersGroup] : [])],
+        groups: [downloadsGroup, ...(update.addToOffers && offersGroup ? [offersGroup] : [])],
         fields,
         status: update.status,
         resubscribe: update.resubscribe,
