@@ -2,7 +2,6 @@ name: CI
 
 on:
   push:
-    branches-ignore: [main]
   pull_request:
   workflow_dispatch:
     inputs:
@@ -19,6 +18,8 @@ concurrency:
 
 jobs:
   check:
+    # Required status check for pull requests into main (TODO.md §1).
+    name: Typecheck, lint, build and test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

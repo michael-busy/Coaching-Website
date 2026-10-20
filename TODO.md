@@ -6,6 +6,44 @@ Everything below is done by hand in a dashboard or account. The code is ready on
 - **Order:** do the sections top to bottom. Nothing goes live until step 5.
 - **Never** paste tokens or secrets into this file or anywhere in the repo.
 
+## Values the site needs
+
+Everything production needs, and where each one goes. "Step" is the section below where it gets created.
+
+**Secrets.** Paste only into the place listed; never into a file.
+
+| Name | Goes in | What it is | Get it from | Step |
+|------|---------|------------|-------------|------|
+| `MAILERLITE_API_TOKEN` | Worker secret (`wrangler secret put`) | Lets the API create subscribers | MailerLite → Integrations → API → Generate token | 3 |
+| `TURNSTILE_SECRET_KEY` | Worker secret | Server side of the bot check | Cloudflare → Turnstile → the widget | 2 |
+| `DOWNLOAD_TOKEN_SECRET` | Worker secret | Signs the download links | Make one up: `openssl rand -base64 32` | 2 |
+| `CLOUDFLARE_API_TOKEN` | GitHub secret | Lets CI deploy | Cloudflare → My Profile → API Tokens → "Edit Cloudflare Workers" | 2 |
+| `CLOUDFLARE_ACCOUNT_ID` | GitHub secret | Which Cloudflare account to deploy to | Cloudflare dashboard sidebar | 2 |
+
+**Plain config (not secret).**
+
+| Name | Goes in | Value | Step |
+|------|---------|-------|------|
+| `MAILERLITE_RESOURCE_GROUP_IDS` | `apps/api/wrangler.jsonc` → `vars` | `{"four-goals":"<id>","unstuck":"<id>"}`, the two "Download: …" group IDs | 3 |
+| `MAILERLITE_OFFERS_GROUP_ID` | `apps/api/wrangler.jsonc` → `vars` | ID of the `Offers` group | 3 |
+| `DOWNLOAD_LINK_TTL_HOURS` | `apps/api/wrangler.jsonc` → `vars` | `24` (already set) | — |
+| `TURNSTILE_SITE_KEY` | GitHub repository **variable** | Public half of the Turnstile widget, built into the pages | 2 |
+
+Until the two MailerLite group values are filled in, every download fails with `server_misconfigured`.
+
+**Created in dashboards.** These have no value to copy, but the code expects them to exist under these exact names.
+
+| What | Where | Step |
+|------|-------|------|
+| Private R2 bucket `coaching-downloads`, with both PDFs (`pnpm r2:seed --remote`) | Cloudflare | 2 |
+| "Managed" Turnstile widget for `chernyakov-coaching.com` and `*.workers.dev` | Cloudflare | 2 |
+| Groups `Download: The Four Goals Workbook`, `Download: The Unstuck Question Toolkit`, `Offers` | MailerLite | 3 |
+| Text fields `marketing_consent`, `marketing_consent_at`, `consent_text_version`, `last_download` | MailerLite | 3 |
+| "Double opt-in for API and integrations" turned on | MailerLite → Subscribe settings | 3 |
+| Environment `production` with required reviewers | GitHub → Settings → Environments | 2 |
+
+**Local development needs none of these.** `pnpm dev` creates `apps/*/.env` with test values: MailerLite runs in dry-run mode and Turnstile uses Cloudflare's test keys. To try a real MailerLite account locally, set `MAILERLITE_DRY_RUN=false` in `apps/api/.env` and add the token and **test** group IDs there.
+
 ## 1. Decisions and content (M)
 
 - [ ] **Booking link.** Three different links are live today. Pick one, and the developer points all three keys of `BOOKING` in `apps/web/app/lib/site.ts` at it.
@@ -20,6 +58,7 @@ Everything below is done by hand in a dashboard or account. The code is ready on
   - the `/resources/` cards and the two resource pages;
   - the offers checkbox wording (`apps/web/app/features/signup/SignupForm.tsx`). If it changes later, bump `OFFERS_CONSENT_VERSION` in `packages/shared/src/signup.ts`.
 - [ ] **Public repo:** the PDFs can still be downloaded from GitHub's history. Make the repo private, or accept this.
+- [ ] **Protect `main`** (needs repo admin): GitHub → Settings → Branches → Add rule for `main` → tick "Require a pull request before merging" and "Require status checks to pass", and select **"Typecheck, lint, build and test"**. Then a PR can't be merged while tests fail.
 - [ ] **Removed files:** the CV, the ICF study guide, and unused videos and photos are gone from the branch. Restore any you want with `git show 795db31:<path> > <path>`.
 
 ## 2. Cloudflare setup
