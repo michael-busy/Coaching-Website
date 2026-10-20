@@ -1,0 +1,24 @@
+{
+  "name": "@coaching/api",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node -e \"require('fs').mkdirSync('../web/build/client',{recursive:true})\" && wrangler dev --port 8787",
+    "preview": "wrangler dev --port 8787",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@coaching/shared": "workspace:*",
+    "@hono/zod-validator": "^0.9.1",
+    "disposable-email-domains-js": "^1.26.0",
+    "hono": "^4.13.13",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261019.1",
+    "vitest": "^5.0.5",
+    "wrangler": "^4.151.1"
+  }
+}

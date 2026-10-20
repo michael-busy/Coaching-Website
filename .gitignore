@@ -1,0 +1,20 @@
+# Dependencies
+node_modules/
+
+# Build output
+build/
+dist/
+.react-router/
+.wrangler/
+coverage/
+
+# Local environment files (templates: apps/*/.env.example)
+.env
+.env.*
+!.env.example
+.dev.vars
+.dev.vars.*
+
+# OS / editor
+.DS_Store
+*.log

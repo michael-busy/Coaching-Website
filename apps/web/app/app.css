@@ -1,0 +1,25 @@
+/* No Tailwind preflight, so the original site styles render unchanged; utilities still win. */
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "./styles/site.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* Site tokens (styles/site.css :root) for Tailwind and shadcn/ui. */
+@theme inline {
+  --color-background: var(--bg);
+  --color-surface: var(--surface);
+  --color-foreground: var(--ink);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted-foreground: var(--muted);
+  --color-border: var(--line);
+  --color-input: var(--line);
+  --color-ring: var(--accent);
+  --color-primary: var(--accent);
+  --color-primary-hover: var(--accent-hover);
+  --color-primary-foreground: #ffffff;
+  --color-accent-soft: var(--accent-soft);
+  --color-destructive: #b42318;
+  --radius-site: var(--radius);
+}
