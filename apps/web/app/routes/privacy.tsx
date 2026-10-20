@@ -78,7 +78,7 @@ export default function Privacy() {
 
             <h2>3. Hosting</h2>
             <p>
-              This website and its server functions are hosted by <strong>Cloudflare</strong>
+              This website and its server functions are hosted by <strong>Cloudflare</strong>{" "}
               (Cloudflare Workers), a service of Cloudflare, Inc., 101 Townsend St, San Francisco,
               CA 94107, USA. Cloudflare also provides the DNS for this domain.
             </p>
@@ -172,7 +172,7 @@ export default function Privacy() {
             <p>
               The legal basis is Art. 6(1)(b) GDPR (performance of a contract or pre-contractual
               measures) where the booking relates to coaching services, and otherwise Art. 6(1)(f)
-              GDPR. Google's own data processing is governed by its privacy policy:
+              GDPR. Google's own data processing is governed by its privacy policy:{" "}
               <a
                 href="https://policies.google.com/privacy"
                 target="_blank"
@@ -258,7 +258,7 @@ export default function Privacy() {
               of registration and confirmation.
             </p>
             <p>
-              The legal basis for this processing is your consent under Art. 6(1)(a) GDPR.
+              The legal basis for this processing is your consent under Art. 6(1)(a) GDPR.{" "}
               <strong>You can withdraw your consent at any time</strong> — for example by clicking
               the unsubscribe link at the bottom of every email, or by emailing me. Withdrawal does
               not affect the lawfulness of processing carried out before withdrawal.
@@ -266,7 +266,7 @@ export default function Privacy() {
             <p>
               Your data will be stored with me until you unsubscribe, after which it will be deleted
               from my mailing list. MailerLite analyses whether emails are opened and which links
-              are clicked, in order to understand which content is useful. Further information:
+              are clicked, in order to understand which content is useful. Further information:{" "}
               <a
                 href="https://www.mailerlite.com/legal/privacy-policy"
                 target="_blank"
@@ -316,8 +316,7 @@ export default function Privacy() {
               </li>
             </ul>
             <p>
-              To exercise any of these rights, contact me at
-              <a href={mailto()}>{CONTACT_EMAIL}</a>.
+              To exercise any of these rights, contact me at <a href={mailto()}>{CONTACT_EMAIL}</a>.
             </p>
 
             <h2>11. Right to lodge a complaint</h2>
@@ -329,7 +328,7 @@ export default function Privacy() {
             </p>
             <p>
               The competent supervisory authority for Berlin is the Berliner Beauftragte für
-              Datenschutz und Informationsfreiheit,
+              Datenschutz und Informationsfreiheit,{" "}
               <a href="https://www.datenschutz-berlin.de" target="_blank" rel="noopener noreferrer">
                 datenschutz-berlin.de
               </a>

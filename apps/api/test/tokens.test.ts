@@ -33,7 +33,14 @@ describe("download tokens", () => {
   });
 
   it("rejects malformed tokens", async () => {
-    for (const token of ["", "abc", "unstuck.123", "unstuck.abc.def", "unstuck.123.!!!"]) {
+    for (const token of [
+      "",
+      "abc",
+      "unstuck.123",
+      "unstuck.abc.def",
+      "unstuck.123.!!!",
+      "unstuck.1.A",
+    ]) {
       expect(await verifyDownloadToken(SECRET, token, "unstuck", now)).toBe("invalid");
     }
   });

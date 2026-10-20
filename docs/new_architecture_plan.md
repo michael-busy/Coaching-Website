@@ -38,6 +38,7 @@ Every manual step (accounts, tokens, dashboard settings, DNS) is tracked in `TOD
 - **Header and nav:** ported as React components on the existing CSS, instead of shadcn `DropdownMenu` and `Sheet`, to keep the look identical.
 - **Not added yet:** Motion, sonner and Playwright. They're not needed by anything built so far; add them when a feature needs them.
 - **Gated download link:** MailerLite stores the full `download_url` instead of a bare token, so the email template doesn't need to know the URL format.
+- **Local env:** `.env` / `.env.example` per app instead of `.dev.vars` (wrangler reads `.env` when no `.dev.vars` exists). `BACKEND_URL` in `apps/web/.env` sets where the dev server forwards `/api/*`. `MAILERLITE_DRY_RUN=true` (local only) logs the download link instead of calling MailerLite.
 - **Signup rate limit:** a Workers rate-limiting binding (`SIGNUP_RATE_LIMITER`, 5 requests/min per IP) runs in front of Turnstile.
 
 ## Hosting decision: Cloudflare
@@ -61,7 +62,7 @@ Secrets are never committed.
 | Where | What |
 |-------|------|
 | Production | `wrangler secret put <NAME>`: stored encrypted in Cloudflare |
-| Local dev | `apps/api/.dev.vars`: git-ignored; `.dev.vars.example` lists the names only |
+| Local dev | `apps/api/.env` and `apps/web/.env`: git-ignored, created from the committed `.env.example` files by `pnpm env:init` |
 | CI deploy | GitHub repo secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, used by `cloudflare/wrangler-action` |
 
 Secret names:
@@ -130,9 +131,9 @@ Browser ──► chernyakov-coaching.com (Cloudflare DNS, GoDaddy = registrar o
 │       │   ├── routes/              signup.ts, downloads.ts, health.ts
 │       │   ├── services/            mailerlite.ts, tokens.ts (HMAC via WebCrypto), turnstile.ts
 │       │   └── middleware/          error handler, request logging
-│       ├── test/                    vitest + @cloudflare/vitest-pool-workers
+│       ├── test/                    vitest (Hono app.request with fake bindings)
 │       ├── wrangler.jsonc           assets dir ../web/build/client, run_worker_first ["/api/*"], R2 binding
-│       └── .dev.vars.example        names of local secrets (real .dev.vars git-ignored)
+│       └── .env.example             local env template (real .env git-ignored)
 ├── packages/
 │   └── shared/                      zod schemas (SignupRequest/Response), resource catalog (slug, title, gated)
 ├── docs/                            old_architecture.md, new_architecture.md
@@ -143,7 +144,7 @@ Browser ──► chernyakov-coaching.com (Cloudflare DNS, GoDaddy = registrar o
 ├── eslint.config.js, .prettierrc, .nvmrc (Node 24 LTS), .gitignore
 ```
 
-Shared types come from Hono RPC: the API exports `AppType`, and the web app calls it through `hc<AppType>()`, so the client is typed end to end with no duplicated types. Turborepo is skipped for now: `pnpm --filter` covers two apps and one package.
+Request and response types come from the zod schemas in `packages/shared`: the API validates with them, and the web client (`apps/web/app/lib/api.ts`) parses responses with them. Turborepo is skipped for now: `pnpm --filter` covers two apps and one package.
 
 ## Libraries (all free / MIT)
 
@@ -187,7 +188,7 @@ Shared types come from Hono RPC: the API exports `AppType`, and the web app call
   - upserts the MailerLite subscriber (group, double opt-in, `download_url`), adding the newsletter group only if consented;
   - maps MailerLite errors to 4xx/5xx with readable messages.
 - [ ] `GET /api/downloads/:slug`: checks the HMAC and expiry with a constant-time compare, then streams from R2 with `Content-Disposition: attachment`. Bad or expired tokens get a 403 and a link back to `/guide/`.
-- [ ] `env.ts` Bindings type for the secrets and vars listed under "Secrets handling"; `.dev.vars.example` with the names only.
+- [ ] `env.ts` Bindings type for the secrets and vars listed under "Secrets handling"; `.env.example` with local defaults.
 
 **Phase 4: reactive signup**
 - [ ] `SignupForm`: react-hook-form + zod (shared schema) + Turnstile + a `useSignup` mutation. Real loading, success and error states, replacing today's always-success `no-cors` behaviour.
@@ -217,8 +218,8 @@ Shared types come from Hono RPC: the API exports `AppType`, and the web app call
 - **Prerender mismatch.** Content that differs between the prerendered HTML and the browser (for example the footer year) causes React hydration warnings. Render the year on the client only.
 
 ## Verification
-- `pnpm install --frozen-lockfile && pnpm -r typecheck && pnpm -r lint && pnpm -r test && pnpm -r build`.
-- API unit tests (vitest-pool-workers):
+- `pnpm install --frozen-lockfile && pnpm typecheck && pnpm lint && pnpm format:check && pnpm build && pnpm test` (the CI sequence).
+- API unit tests (plain Vitest on Node, with fake bindings):
   - signup: valid → 200; bad email → 400; failed Turnstile → 403; MailerLite 5xx → 502;
   - token: sign/verify, expired and tampered tokens;
   - download: valid → PDF bytes; invalid → 403.

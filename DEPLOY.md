@@ -13,7 +13,8 @@ Prerequisites:
 - `pnpm --filter @coaching/api exec wrangler login` has been run once.
 
 ```bash
-# The public Turnstile site key is baked into the build
+# The public Turnstile site key is baked into the build. `pnpm deploy` refuses to build
+# without it (or with a Cloudflare test key), so production never ships the test key.
 VITE_TURNSTILE_SITE_KEY=<site key> pnpm deploy
 ```
 

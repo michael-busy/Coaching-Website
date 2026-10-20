@@ -23,7 +23,7 @@ Owner key: **M** = Michael (account owner), **D** = developer.
 - [ ] **M** Add the site `chernyakov-coaching.com` (free plan). **Do not change nameservers at GoDaddy yet** (§5).
 - [ ] **M** Note the **Account ID** (dashboard sidebar). It is not secret, but keep it out of the repo anyway.
 - [ ] **M** Create an **API token** for deploys: My Profile → API Tokens → template "Edit Cloudflare Workers", scoped to this account and zone.
-- [ ] **M/D** Add GitHub repo secrets (Settings → Secrets and variables → Actions): `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`; create an environment named `production` (used by the deploy job).
+- [ ] **M/D** Add GitHub repo secrets (Settings → Secrets and variables → Actions): `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`; create an environment named `production` (used by the deploy job) and give it **required reviewers**, since the manual deploy can run from any branch.
 - [ ] **D** Run `pnpm --filter @coaching/api exec wrangler login` locally (opens browser) for local deploys.
 
 ## 3. Cloudflare services
@@ -41,7 +41,7 @@ Owner key: **M** = Michael (account owner), **D** = developer.
   - `pnpm --filter @coaching/api exec wrangler secret put MAILERLITE_API_TOKEN`
   - `pnpm --filter @coaching/api exec wrangler secret put TURNSTILE_SECRET_KEY`
   - `pnpm --filter @coaching/api exec wrangler secret put DOWNLOAD_TOKEN_SECRET` (generate with `openssl rand -base64 32`)
-- [ ] **D** Fill local `apps/api/.dev.vars` (git-ignored; copy `.dev.vars.example`) with test values for local dev.
+- [ ] **D** Local dev needs no account: `pnpm dev` creates `apps/api/.env` and `apps/web/.env` from their `.env.example` files (MailerLite runs in dry-run mode). To test against MailerLite, set `MAILERLITE_DRY_RUN=false` and fill in a token and test group IDs in `apps/api/.env`.
 
 ## 4. MailerLite
 
@@ -50,8 +50,8 @@ Owner key: **M** = Michael (account owner), **D** = developer.
 - [ ] **M** Create groups: `Unstuck worksheet` and `Newsletter`. Send both group IDs to the developer.
 - [ ] **D** Put the group IDs in `apps/api/wrangler.jsonc` → `vars.MAILERLITE_GROUP_ID` / `vars.MAILERLITE_NEWSLETTER_GROUP_ID` (they are empty now, so signups fail with `server_misconfigured` until set).
 - [ ] **M** Enable double opt-in for API / integration signups (Account settings → Subscribe settings). Check the confirmation email text.
-- [ ] **M** Create an automation: trigger "Subscriber joins group → Unstuck worksheet", one email whose button links to `{$download_url}` (links expire after `DOWNLOAD_LINK_TTL_DAYS`, default 14).
-- [ ] **D** Verify against the current MailerLite API docs that API-created subscribers in the unconfirmed state receive the confirmation email and only enter the automation after confirming. Also check that a subscriber who is already confirmed gets the email again when re-added to the group (the API code assumes so).
+- [ ] **M** Create an automation: trigger "Subscriber joins group → Unstuck worksheet", allow subscribers to **repeat the workflow** (needed for fresh links after expiry), one email whose button links to `{$download_url}` (links expire after `DOWNLOAD_LINK_TTL_DAYS`, default 14).
+- [ ] **D** Verify against the current MailerLite API docs that API-created subscribers in the unconfirmed state receive the confirmation email and only enter the automation after confirming. For a repeat signup (e.g. after an expired link) the API removes and re-adds an existing subscriber to the worksheet group (`DELETE` + `POST /api/subscribers/:id/groups/:groupId`) so the automation fires again. Check both endpoints against the docs.
 - [ ] **M** After cutover: delete or disable the old embedded form `197441156622058500` (it is no longer used).
 
 ## 5. DNS move to Cloudflare (cutover day, Phase 7)

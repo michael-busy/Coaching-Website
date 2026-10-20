@@ -25,8 +25,13 @@ function toBase64Url(bytes: ArrayBuffer): string {
 function fromBase64Url(value: string): Uint8Array | null {
   if (!/^[A-Za-z0-9_-]+$/.test(value)) return null;
   const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
-  const binary = atob(base64 + "=".repeat((4 - (base64.length % 4)) % 4));
-  return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  try {
+    const binary = atob(base64 + "=".repeat((4 - (base64.length % 4)) % 4));
+    return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  } catch {
+    // e.g. a length that is not valid base64 (length % 4 === 1)
+    return null;
+  }
 }
 
 export async function createDownloadToken(

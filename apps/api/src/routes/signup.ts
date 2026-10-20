@@ -2,7 +2,7 @@ import { zValidator } from "@hono/zod-validator";
 import { signupRequestSchema, type SignupResponse } from "@coaching/shared";
 import { Hono } from "hono";
 import { requireEnv, type AppEnv } from "../env";
-import { upsertSubscriber } from "../services/mailerlite";
+import { rejoinGroup, upsertSubscriber } from "../services/mailerlite";
 import { createDownloadToken } from "../services/tokens";
 import { verifyTurnstile } from "../services/turnstile";
 
@@ -56,18 +56,36 @@ export const signup = new Hono<AppEnv>().post(
     const downloadUrl = new URL(`/api/downloads/${body.resource}`, c.req.url);
     downloadUrl.searchParams.set("t", token);
 
-    const groups = [requireEnv(c.env, "MAILERLITE_GROUP_ID")];
+    if (c.env.MAILERLITE_DRY_RUN === "true") {
+      // Local development without a MailerLite account: the link would be in the email.
+      console.log(`[dry run] MailerLite skipped. Download link for ${body.email}: ${downloadUrl}`);
+      return c.json({ ok: true } satisfies SignupResponse, 200);
+    }
+
+    const apiToken = requireEnv(c.env, "MAILERLITE_API_TOKEN");
+    const worksheetGroupId = requireEnv(c.env, "MAILERLITE_GROUP_ID");
+    const groups = [worksheetGroupId];
     if (body.consentNewsletter) groups.push(requireEnv(c.env, "MAILERLITE_NEWSLETTER_GROUP_ID"));
 
-    const result = await upsertSubscriber({
-      apiToken: requireEnv(c.env, "MAILERLITE_API_TOKEN"),
+    const upserted = await upsertSubscriber({
+      apiToken,
       email: body.email,
       groups,
       fields: { download_url: downloadUrl.toString() },
     });
 
+    // Existing subscriber: re-enter the worksheet group so the download email is sent again.
+    const result =
+      upserted.ok && !upserted.created
+        ? await rejoinGroup({
+            apiToken,
+            subscriberId: upserted.subscriberId,
+            groupId: worksheetGroupId,
+          })
+        : upserted;
+
     if (!result.ok) {
-      console.error("MailerLite upsert failed", { status: result.status, kind: result.kind });
+      console.error("MailerLite request failed", { status: result.status, kind: result.kind });
       if (result.kind === "invalid") {
         return c.json(failure("invalid_request", "That email address was not accepted."), 400);
       }

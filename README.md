@@ -20,19 +20,37 @@ Docs:
 
 ```bash
 pnpm install
-cp apps/api/.dev.vars.example apps/api/.dev.vars   # fill in local test values (git-ignored)
-pnpm dev
+pnpm dev            # frontend + backend together
 ```
 
-`pnpm dev` runs two servers:
-- **Vite** at http://localhost:5180: the web app, with hot reload.
-- **`wrangler dev`** at http://localhost:8787: the Worker. Vite forwards `/api/*` requests to it.
+The first run creates `apps/api/.env` and `apps/web/.env` from their `.env.example` templates. Both are git-ignored. You can also run that step on its own with `pnpm env:init`. The defaults work without any accounts:
+- Turnstile uses Cloudflare's test keys.
+- MailerLite runs in dry-run mode: the signup logs the download link in the backend terminal instead of sending an email.
 
-To test the production setup locally (the prerendered build served by the Worker, exactly as on Cloudflare):
+| Command | Starts |
+|---------|--------|
+| `pnpm dev` | Both of the below, in parallel |
+| `pnpm dev:frontend` | Vite dev server (hot reload) at http://localhost:5180 |
+| `pnpm dev:backend` | The Worker (`wrangler dev`) at http://localhost:8787 |
+| `pnpm preview` | Production-like: builds the site, then the Worker serves pages + API at http://localhost:8787 |
 
-```bash
-pnpm preview   # builds, then http://localhost:8787
-```
+### Environment files
+
+| File | Variable | Purpose |
+|------|----------|---------|
+| `apps/web/.env` | `BACKEND_URL` | Where the frontend sends `/api/*`. The browser calls the dev server, which forwards to this URL, so it can be the local Worker (default `http://localhost:8787`) or a deployed one, with no CORS setup. Only used by the dev server: in production the Worker serves pages and API from the same origin. |
+| `apps/web/.env` | `VITE_TURNSTILE_SITE_KEY` | Public Turnstile site key. Empty = Cloudflare test key. |
+| `apps/api/.env` | `MAILERLITE_DRY_RUN` | `true` = skip MailerLite and log the link. Local only. |
+| `apps/api/.env` | `MAILERLITE_API_TOKEN`, `MAILERLITE_GROUP_ID`, `MAILERLITE_NEWSLETTER_GROUP_ID` | Needed when dry run is off. Use test groups. |
+| `apps/api/.env` | `TURNSTILE_SECRET_KEY`, `DOWNLOAD_TOKEN_SECRET`, `DOWNLOAD_LINK_TTL_DAYS` | Bot check secret, link signing secret, link lifetime |
+
+Shell variables override the files, for example `BACKEND_URL=https://….workers.dev pnpm dev:frontend`.
+
+Note: if an `apps/api/.dev.vars` file exists, wrangler reads it **instead of** `.env`. Delete it to use `.env`.
+
+Production values are not set in these files. Secrets go in with `wrangler secret put` and plain variables live in `wrangler.jsonc` (see `DEPLOY.md`).
+
+### Local gated download
 
 The gated download reads from a local R2 bucket. Seed it once:
 
@@ -42,11 +60,14 @@ pnpm --filter @coaching/api exec wrangler r2 object put coaching-downloads/unstu
   --file /tmp/unstuck.pdf --content-type application/pdf --local
 ```
 
+Then open the link from the dry-run log line.
+
 ## Scripts
 
 | Command | What it does |
 |---------|--------------|
-| `pnpm dev` | Web (Vite) and API (wrangler) together |
+| `pnpm dev` / `dev:frontend` / `dev:backend` | Local dev servers (see above) |
+| `pnpm env:init` | Create missing `apps/*/.env` from `.env.example` |
 | `pnpm build` | Prerender the web app into `apps/web/build/client` |
 | `pnpm typecheck` | React Router typegen, then `tsc` in every package |
 | `pnpm lint` / `pnpm format` | ESLint / Prettier |

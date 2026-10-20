@@ -24,8 +24,15 @@ function stubUpstreams(options: { turnstile?: boolean; mailerliteStatus?: number
       if (url.includes("challenges.cloudflare.com")) {
         return Response.json({ success: options.turnstile ?? true });
       }
+      if (url.includes("connect.mailerlite.com/api/subscribers/")) {
+        // Group membership: DELETE / POST /subscribers/:id/groups/:groupId
+        return new Response(null, { status: init?.method === "DELETE" ? 204 : 200 });
+      }
       if (url.includes("connect.mailerlite.com")) {
-        return Response.json({}, { status: options.mailerliteStatus ?? 201 });
+        return Response.json(
+          { data: { id: "sub-1" } },
+          { status: options.mailerliteStatus ?? 201 },
+        );
       }
       throw new Error(`Unexpected fetch: ${url}`);
     }),
@@ -65,7 +72,7 @@ describe("POST /api/signup", () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true });
 
-    const mailerlite = calls.find((call) => call.url.includes("mailerlite"));
+    const mailerlite = calls.find((call) => call.url.endsWith("/api/subscribers"));
     expect(mailerlite?.init?.headers).toMatchObject({ Authorization: "Bearer ml-token" });
     const payload = JSON.parse(String(mailerlite?.init?.body));
     expect(payload.email).toBe("someone@example.com");
@@ -75,10 +82,29 @@ describe("POST /api/signup", () => {
     );
   });
 
+  it("does not touch group membership for a new subscriber", async () => {
+    const calls = stubUpstreams({ mailerliteStatus: 201 });
+    await postSignup(validBody);
+    expect(calls.filter((call) => call.url.includes("/groups/"))).toHaveLength(0);
+  });
+
+  it("re-adds an existing subscriber to the worksheet group so the email is sent again", async () => {
+    const calls = stubUpstreams({ mailerliteStatus: 200 });
+    const res = await postSignup({ ...validBody, consentNewsletter: true });
+    expect(res.status).toBe(200);
+    const groupCalls = calls
+      .filter((call) => call.url.includes("/groups/"))
+      .map((call) => `${call.init?.method} ${new URL(call.url).pathname}`);
+    expect(groupCalls).toEqual([
+      "DELETE /api/subscribers/sub-1/groups/group-worksheet",
+      "POST /api/subscribers/sub-1/groups/group-worksheet",
+    ]);
+  });
+
   it("adds the newsletter group only with newsletter consent", async () => {
     const calls = stubUpstreams();
     await postSignup({ ...validBody, consentNewsletter: true });
-    const mailerlite = calls.find((call) => call.url.includes("mailerlite"));
+    const mailerlite = calls.find((call) => call.url.endsWith("/api/subscribers"));
     expect(JSON.parse(String(mailerlite?.init?.body)).groups).toEqual([
       "group-worksheet",
       "group-newsletter",
@@ -129,6 +155,17 @@ describe("POST /api/signup", () => {
     expect(res.status).toBe(429);
   });
 
+  it("skips MailerLite in dry-run mode", async () => {
+    const calls = stubUpstreams();
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+    const env = makeEnv({ MAILERLITE_DRY_RUN: "true", MAILERLITE_API_TOKEN: "" });
+    const res = await postSignup(validBody, env);
+    expect(res.status).toBe(200);
+    expect(calls.some((call) => call.url.includes("mailerlite"))).toBe(false);
+    expect(log).toHaveBeenCalledWith(expect.stringContaining("/api/downloads/unstuck?t="));
+    log.mockRestore();
+  });
+
   it("returns 500 when configuration is missing", async () => {
     stubUpstreams();
     const res = await postSignup(validBody, makeEnv({ MAILERLITE_GROUP_ID: "" }));
@@ -159,6 +196,12 @@ describe("GET /api/downloads/:slug", () => {
 
   it("redirects invalid or missing tokens", async () => {
     const res = await app.request("/api/downloads/unstuck", {}, makeEnv());
+    expect(res.status).toBe(302);
+    expect(res.headers.get("Location")).toBe("/guide/?link=invalid");
+  });
+
+  it("redirects tokens with a malformed signature instead of failing", async () => {
+    const res = await app.request("/api/downloads/unstuck?t=unstuck.1.A", {}, makeEnv());
     expect(res.status).toBe(302);
     expect(res.headers.get("Location")).toBe("/guide/?link=invalid");
   });

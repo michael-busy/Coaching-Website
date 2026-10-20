@@ -2,15 +2,18 @@ import { useSyncExternalStore } from "react";
 import { Link } from "react-router";
 import { CONTACT_EMAIL, SITE_NAME, mailto } from "~/lib/site";
 
-const BUILD_YEAR = new Date().getFullYear();
 const noopSubscribe = () => () => {};
 
-/** Current year; the prerendered HTML has the build year and the client corrects it. */
+/**
+ * Current year. The prerendered HTML contains the build year (__BUILD_YEAR__, injected by
+ * vite.config.ts into both the server and client bundles), so hydration always matches; the
+ * client then switches to the visitor's current year if it differs.
+ */
 function useCurrentYear(): number {
   return useSyncExternalStore(
     noopSubscribe,
     () => new Date().getFullYear(),
-    () => BUILD_YEAR,
+    () => __BUILD_YEAR__,
   );
 }
 

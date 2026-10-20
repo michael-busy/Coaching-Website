@@ -1,4 +1,4 @@
-/** Bindings, secrets and vars available to the Worker (see wrangler.jsonc and .dev.vars.example). */
+/** Bindings, secrets and vars available to the Worker (see wrangler.jsonc and .env.example). */
 export interface Bindings {
   /** Static assets: the prerendered web app in apps/web/build/client. */
   ASSETS: Fetcher;
@@ -7,7 +7,7 @@ export interface Bindings {
   /** Optional: Workers rate limiting binding for the signup endpoint. */
   SIGNUP_RATE_LIMITER?: RateLimit;
 
-  // Secrets (wrangler secret put / .dev.vars)
+  // Secrets (wrangler secret put in production, apps/api/.env locally)
   MAILERLITE_API_TOKEN: string;
   TURNSTILE_SECRET_KEY: string;
   DOWNLOAD_TOKEN_SECRET: string;
@@ -16,6 +16,9 @@ export interface Bindings {
   MAILERLITE_GROUP_ID: string;
   MAILERLITE_NEWSLETTER_GROUP_ID: string;
   DOWNLOAD_LINK_TTL_DAYS: string;
+
+  /** Local development only (apps/api/.env): "true" skips MailerLite and logs the link. */
+  MAILERLITE_DRY_RUN?: string;
 }
 
 export type AppEnv = { Bindings: Bindings };
