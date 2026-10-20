@@ -37,8 +37,8 @@ Every manual step (accounts, tokens, dashboard settings, DNS) is tracked in `TOD
 - **Typed client:** plain `fetch` validated with the shared zod schemas (`apps/web/app/lib/api.ts`), instead of the Hono RPC client. Hono RPC would have required the web app to type-check the Worker's runtime types.
 - **Header and nav:** ported as React components on the existing CSS, instead of shadcn `DropdownMenu` and `Sheet`, to keep the look identical.
 - **Not added yet:** Motion, sonner and Playwright. They're not needed by anything built so far; add them when a feature needs them.
-- **Gated download link:** MailerLite stores the full `download_url` instead of a bare token, so the email template doesn't need to know the URL format.
-- **Local env:** `.env` / `.env.example` per app instead of `.dev.vars` (wrangler reads `.env` when no `.dev.vars` exists). `BACKEND_URL` in `apps/web/.env` sets where the dev server forwards `/api/*`. `MAILERLITE_DRY_RUN=true` (local only) logs the download link instead of calling MailerLite.
+- **Gated download link:** the API returns a signed, expiring `downloadUrl` and the browser downloads it straight away (see "Owner request: gated resources" below).
+- **Local env:** `.env` / `.env.example` per app instead of `.dev.vars` (wrangler reads `.env` when no `.dev.vars` exists). `BACKEND_URL` in `apps/web/.env` sets where the dev server forwards `/api/*`. `MAILERLITE_DRY_RUN=true` (local only) logs the subscriber payload instead of calling MailerLite.
 - **Signup rate limit:** a Workers rate-limiting binding (`SIGNUP_RATE_LIMITER`, 5 requests/min per IP) runs in front of Turnstile.
 
 ### Owner request: gated resources (2026-10-20)
@@ -60,10 +60,11 @@ MailerLite status rules (`subscriberUpdate` in `apps/api/src/services/mailerlite
 | none | yes | `status: unconfirmed` + Offers group → double opt-in email |
 | none | no | `status: unsubscribed` (stored, never emailed) |
 | unsubscribed | yes | `status: unconfirmed`, `resubscribe: true` + Offers group |
-| active / unconfirmed / other | yes | no status change + Offers group |
+| unconfirmed | yes | `status: unconfirmed` again + Offers group (asks MailerLite to resend the double opt-in email; unverified whether it does, see `TODO.md` §3) |
+| active / other | yes | no status change + Offers group |
 | any | no | no status change, no Offers group |
 
-Every upsert adds the `Downloads` group (`MAILERLITE_DOWNLOADS_GROUP_ID`; one group for all resources, not one per resource) and the fields `downloads` (comma-separated slugs, earlier ones kept), `last_download`, `marketing_consent` (`yes` only on a tick; `no` only for new subscribers), `marketing_consent_at` and `consent_text_version` (on a tick), plus `ip_address`.
+Every upsert adds the `Downloads` group (`MAILERLITE_DOWNLOADS_GROUP_ID`; one group for all resources, not one per resource) and the fields `downloads` (comma-separated slugs, earlier ones kept), `last_download`, `marketing_consent` (`yes` only on a tick; `no` only for new subscribers), `marketing_consent_at` and `consent_text_version` (on a tick), plus `ip_address` (on a tick only: it is consent evidence).
 
 **Email check (2026-10-20).** Downloads stay instant, so the address isn't proven to be real. After the bot check, `checkEmailDomain` (`apps/api/src/services/email-domain.ts`) rejects throwaway-inbox domains (the CC0 list in `disposable-email-domains-js`) and domains with no mail server (MX, then A/AAAA, over Cloudflare DNS-over-HTTPS; only the domain is sent). DNS failures let the signup through. Rejections answer `400 invalid_email`, shown on the email field. Emailing the link instead (proves the inbox) was considered and deferred.
 
@@ -99,9 +100,11 @@ Secret names:
 - `TURNSTILE_SECRET_KEY`
 
 Plain variables (in `wrangler.jsonc`):
-- `MAILERLITE_GROUP_ID`
-- `MAILERLITE_NEWSLETTER_GROUP_ID`
-- `TURNSTILE_SITE_KEY` (public)
+- `MAILERLITE_DOWNLOADS_GROUP_ID`
+- `MAILERLITE_OFFERS_GROUP_ID`
+- `DOWNLOAD_LINK_TTL_HOURS`
+
+The public Turnstile site key (`VITE_TURNSTILE_SITE_KEY`) is built into the pages at deploy time.
 
 ## Target architecture (Cloudflare)
 
@@ -124,11 +127,11 @@ Browser ──► chernyakov-coaching.com (Cloudflare DNS, GoDaddy = registrar o
   - R2 storage gets 10 GB with zero egress.
   - Each static file can be at most 25 MiB. The 64.9 MB unused video gets deleted anyway. Videos actually in use are 6.4 MB and 14 MB, so they fit.
 - **Gated-download flow (no webhook needed):**
-  1. `POST /api/signup` checks the Turnstile captcha.
-  2. It creates a MailerLite subscriber (double opt-in, group = the worksheet group) with a custom field `download_url`: the full link with a token that is an HMAC of slug + expiry, valid `DOWNLOAD_LINK_TTL_DAYS` (default 14).
-  3. Only after the person confirms their email does the MailerLite automation ("joins group" trigger) send the email with the link `{$download_url}` (`https://chernyakov-coaching.com/api/downloads/unstuck?t=<token>`).
-  4. The Worker checks the token and streams the PDF from the private R2 bucket.
-- **Rendering:** React Router v7 framework mode with `ssr: false` and every marketing route prerendered to static HTML. SEO and social previews stay as good as today, and React takes over in the browser for the interactive parts.
+  1. `POST /api/signup` checks the rate limit, the Turnstile captcha and the email's domain.
+  2. It upserts the MailerLite subscriber (`Downloads` group; `Offers` group and double opt-in only if the offers box is ticked).
+  3. It returns a signed `downloadUrl` (HMAC of slug + expiry, valid `DOWNLOAD_LINK_TTL_HOURS`, default 24), and the browser downloads it straight away.
+  4. `GET /api/downloads/:slug` checks the token and streams the PDF from the private R2 bucket.
+- **Rendering:** React Router v8 framework mode with `ssr: false` and every marketing route prerendered to static HTML. SEO and social previews stay as good as today, and React takes over in the browser for the interactive parts.
 
 ## Folder structure
 

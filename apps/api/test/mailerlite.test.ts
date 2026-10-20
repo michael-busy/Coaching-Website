@@ -18,8 +18,15 @@ describe("subscriberUpdate", () => {
     });
   });
 
-  it("active / unconfirmed + offers: keep status, add Offers group", () => {
-    for (const status of ["active", "unconfirmed", "bounced"]) {
+  it("unconfirmed + offers: unconfirmed again, so the double opt-in email can be resent", () => {
+    expect(subscriberUpdate({ status: "unconfirmed" }, true)).toEqual({
+      status: "unconfirmed",
+      addToOffers: true,
+    });
+  });
+
+  it("active / other + offers: keep status, add Offers group", () => {
+    for (const status of ["active", "bounced", "junk"]) {
       expect(subscriberUpdate({ status }, true)).toEqual({ addToOffers: true });
     }
   });

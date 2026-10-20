@@ -93,7 +93,8 @@ export const signup = new Hono<AppEnv>().post(
         fields,
         status: update.status,
         resubscribe: update.resubscribe,
-        ipAddress: clientIp,
+        // Consent evidence only (privacy policy §8): a plain download doesn't store the IP.
+        ipAddress: body.consentOffers ? clientIp : undefined,
       };
     };
 

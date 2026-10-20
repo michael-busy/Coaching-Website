@@ -1,5 +1,4 @@
 import { NotFoundSection } from "~/components/sections/NotFoundSection";
-import { LinkStatusNotice } from "~/features/signup/LinkStatusNotice";
 import { SignupForm } from "~/features/signup/SignupForm";
 import { getResourceContent, resourcePath } from "~/lib/resources";
 import { BOOKING, SITE_NAME, SITE_URL } from "~/lib/site";
@@ -55,7 +54,6 @@ export default function ResourcePage({ params }: Route.ComponentProps) {
               <h2>Get the {resource.kind}</h2>
               <p>Enter your email and the download starts straight away.</p>
 
-              <LinkStatusNotice />
               {/* key: reset the form state when navigating between resources */}
               <SignupForm key={resource.slug} resource={resource} />
             </div>

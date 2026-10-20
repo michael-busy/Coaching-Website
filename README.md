@@ -40,8 +40,8 @@ The first run creates `apps/api/.env` and `apps/web/.env` from their `.env.examp
 |------|----------|---------|
 | `apps/web/.env` | `BACKEND_URL` | Where the frontend sends `/api/*`. The browser calls the dev server, which forwards to this URL, so it can be the local Worker (default `http://localhost:8787`) or a deployed one, with no CORS setup. Only used by the dev server: in production the Worker serves pages and API from the same origin. |
 | `apps/web/.env` | `VITE_TURNSTILE_SITE_KEY` | Public Turnstile site key. Empty = Cloudflare test key. |
-| shell, set by `pnpm deploy` / CI deploy | `REQUIRE_TURNSTILE_SITE_KEY=true` | Makes the build fail if `VITE_TURNSTILE_SITE_KEY` is empty or a test key. Not needed locally. |
-| `apps/api/.env` | `MAILERLITE_DRY_RUN` | `true` = skip MailerLite and log the link. Local only. |
+| shell, set by `pnpm deploy` | `REQUIRE_TURNSTILE_SITE_KEY=true` | Makes the build fail if `VITE_TURNSTILE_SITE_KEY` is empty or a test key. Not needed locally. |
+| `apps/api/.env` | `MAILERLITE_DRY_RUN` | `true` = skip MailerLite and log the subscriber payload. Local only. |
 | `apps/api/.env` | `MAILERLITE_API_TOKEN`, `MAILERLITE_DOWNLOADS_GROUP_ID`, `MAILERLITE_OFFERS_GROUP_ID` | Needed when dry run is off. Use test groups. |
 | `apps/api/.env` | `TURNSTILE_SECRET_KEY`, `DOWNLOAD_TOKEN_SECRET`, `DOWNLOAD_LINK_TTL_HOURS` | Bot check secret, link signing secret, link lifetime in hours (required, > 0) |
 

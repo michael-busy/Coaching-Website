@@ -73,14 +73,14 @@ Everything production needs, and where each one goes. "Step" is the section belo
 
 ## 3. MailerLite setup
 
-- [ ] **M** Create an API token (Integrations → API). Keep it in a password manager and give it to the developer for `wrangler secret put`.
+- [x] **M** Create an API token (Integrations → API). Keep it in a password manager and give it to the developer for `wrangler secret put`. (It's in `apps/api/.env` locally; the Worker secret is still to do in step 2.)
 - [x] **M** **Groups:** `Downloads` and `Offers` (IDs in `wrangler.jsonc`), plus `TEST_Downloads` and `TEST_Offers` for local tests (IDs in `apps/api/.env`).
   - Every downloader joins `Downloads`; the `downloads` field lists what they got (e.g. `four-goals,unstuck`). For "everyone who got the workbook", make a segment: `downloads` contains `four-goals`.
 - [x] **M** **Custom fields** (type text): `downloads`, `last_download`, `marketing_consent`, `marketing_consent_at`, `consent_text_version`.
 - [x] **D** Put the group IDs into `apps/api/wrangler.jsonc` → `vars`. If a group is ever recreated, its ID changes: update it there, or downloads fail with `server_misconfigured`.
 - [ ] **M** Turn on **"Double opt-in for API and integrations"** (Account settings → Subscribe settings). Reword the confirmation email to "confirm you'd like to receive offers". Optionally, set the page after confirmation to `https://chernyakov-coaching.com/resources/`.
 - [ ] **M** From now on, send offers **only to the `Offers` group**. People who didn't tick the box are stored as `unsubscribed` and can't be emailed.
-- [ ] **D** Test with a test group and `MAILERLITE_DRY_RUN=false` in `apps/api/.env`:
+- [x] **D** Test with a test group and `MAILERLITE_DRY_RUN=false` in `apps/api/.env`:
 
   | Case | Expected |
   |------|----------|
@@ -88,6 +88,8 @@ Everything production needs, and where each one goes. "Step" is the section belo
   | New email, not ticked | `unsubscribed`, no email |
   | Existing subscriber, not ticked | Status unchanged |
   | Unsubscribed subscriber, ticked | Back to `unconfirmed`, confirmation email arrives |
+
+- [ ] **D** Test the resend: sign up a test address with offers ticked, don't confirm, then sign up again with the box ticked. Does a **second** confirmation email arrive? If not, tell the developer: the form should then tell the visitor to check their inbox or email you instead.
 
 - [ ] **M** Delete what's no longer used: the old embedded form `197441156622058500` (after launch), plus any download automation or `download_url` field you created earlier.
 

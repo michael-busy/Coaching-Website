@@ -141,6 +141,7 @@ describe("POST /api/signup", () => {
       fields: { downloads: "four-goals", last_download: "four-goals", marketing_consent: "no" },
     });
     expect(payload.fields).not.toHaveProperty("marketing_consent_at");
+    expect(payload).not.toHaveProperty("ip_address");
   });
 
   it("existing active subscriber without consent: status and earlier consent untouched", async () => {
@@ -173,6 +174,17 @@ describe("POST /api/signup", () => {
       resubscribe: true,
       groups: ["group-downloads", "group-offers"],
     });
+  });
+
+  it("existing unconfirmed subscriber who ticks offers again is sent unconfirmed again", async () => {
+    const calls = stubUpstreams({ existingStatus: "unconfirmed", upsertStatus: 200 });
+    await postSignup({ ...validBody, consentOffers: true });
+    const payload = upsertPayload(calls);
+    expect(payload).toMatchObject({
+      status: "unconfirmed",
+      groups: ["group-downloads", "group-offers"],
+    });
+    expect(payload).not.toHaveProperty("resubscribe");
   });
 
   it("rejects an invalid email with 400 before any upstream call", async () => {

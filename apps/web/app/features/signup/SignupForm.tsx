@@ -11,6 +11,7 @@ import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
+import { LinkStatusNotice } from "~/features/signup/LinkStatusNotice";
 import { postSignup } from "~/lib/api";
 import type { ResourceContent } from "~/lib/resources";
 import { CONTACT_EMAIL, TURNSTILE_SITE_KEY, mailto } from "~/lib/site";
@@ -21,6 +22,8 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+const TURNSTILE_ERROR_MESSAGE = `The bot check couldn't load. An ad blocker or privacy extension can cause this — pause it for this page and reload, or email ${CONTACT_EMAIL}.`;
 
 /**
  * Wording of the optional offers consent. It is stored as evidence under OFFERS_CONSENT_VERSION
@@ -48,7 +51,9 @@ export function SignupForm({
 
   const onSubmit = form.handleSubmit(async (values) => {
     if (!turnstileToken) {
-      setCaptchaMessage("Please wait for the bot check to finish, then try again.");
+      setCaptchaMessage(
+        (message) => message ?? "Please wait for the bot check to finish, then try again.",
+      );
       return;
     }
     setCaptchaMessage(null);
@@ -98,6 +103,7 @@ export function SignupForm({
 
   return (
     <>
+      <LinkStatusNotice />
       <form className="lm-form" noValidate onSubmit={onSubmit}>
         <div className="mb-4 flex flex-col gap-1.5">
           <Label htmlFor="lm-email">Email address</Label>
@@ -145,7 +151,10 @@ export function SignupForm({
               setCaptchaMessage(null);
             }}
             onExpire={() => setTurnstileToken(null)}
-            onError={() => setTurnstileToken(null)}
+            onError={() => {
+              setTurnstileToken(null);
+              setCaptchaMessage(TURNSTILE_ERROR_MESSAGE);
+            }}
           />
           {captchaMessage && <p className="m-0 text-sm text-destructive">{captchaMessage}</p>}
         </div>

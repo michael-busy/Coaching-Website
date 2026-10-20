@@ -88,6 +88,8 @@ export function subscriberUpdate(
   if (existing.status === "unsubscribed") {
     return { status: "unconfirmed", resubscribe: true, addToOffers: true };
   }
+  // Ticked again before confirming: ask MailerLite to send the double opt-in email again.
+  if (existing.status === "unconfirmed") return { status: "unconfirmed", addToOffers: true };
   return { addToOffers: true };
 }
 
