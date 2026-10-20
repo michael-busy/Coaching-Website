@@ -1,0 +1,12 @@
+# Copy to .dev.vars (git-ignored) for `pnpm dev`. Names only — never commit real values.
+
+# MailerLite → Integrations → API. Use a test group while developing.
+MAILERLITE_API_TOKEN=
+MAILERLITE_GROUP_ID=
+MAILERLITE_NEWSLETTER_GROUP_ID=
+
+# Cloudflare Turnstile test secret that always passes (pairs with the test site key in the web app).
+TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA
+
+# Any long random string, e.g. `openssl rand -base64 32`.
+DOWNLOAD_TOKEN_SECRET=

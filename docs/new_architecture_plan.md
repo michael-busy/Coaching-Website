@@ -13,6 +13,33 @@ Work branch: `new_architecture_be_fe`.
 
 Every manual step (accounts, tokens, dashboard settings, DNS) is tracked in `TODO.md` at the repo root. This plan covers the code work.
 
+## Implementation status (branch `new_architecture_be_fe`)
+
+| Phase | Status |
+|-------|--------|
+| 0. Prerequisites | 🚧 manual, see `TODO.md` |
+| 1. Monorepo scaffold | ✅ pnpm workspace, TS strict, ESLint + Prettier, CI (`.github/workflows/ci.yml`) |
+| 2. Frontend port | ✅ all 9 pages, same text/links/images as the old site (verified by diff), redirects, 404 |
+| 3. API | ✅ `/api/health`, `/api/signup`, `/api/downloads/:slug`; 21 unit tests |
+| 4. Reactive signup | ✅ `SignupForm` with real success/error states |
+| 5. Gated assets + cleanup | ✅ code side; R2 upload is manual (`TODO.md` §3). Old static files deleted |
+| 6. Preview deploy | 🚧 blocked on Cloudflare account; verified locally with `wrangler dev` |
+| 7. Cutover | 🚧 code side done (privacy policy, docs, `routes` stub); DNS steps manual |
+
+### Deviations from the plan below (decided during implementation)
+
+- **Versions resolved newer than planned:** React Router **v8** (same framework mode as v7, minus removed flags), Vite 8, Vitest 5, zod 4. TypeScript is pinned to **6.0**: TS 7 is out, but typescript-eslint does not support it yet.
+- **Styling:**
+  - The original `styles.css` is kept as `apps/web/app/styles/site.css` in Tailwind's `base` layer.
+  - Tailwind's preflight reset is not loaded, so the pages look exactly as before.
+  - Tailwind utilities and shadcn/ui are available for new UI and are used in the signup form.
+  - Rewriting all existing CSS into utilities was skipped: it was pure churn with a high risk of visual regressions.
+- **Typed client:** plain `fetch` validated with the shared zod schemas (`apps/web/app/lib/api.ts`), instead of the Hono RPC client. Hono RPC would have required the web app to type-check the Worker's runtime types.
+- **Header and nav:** ported as React components on the existing CSS, instead of shadcn `DropdownMenu` and `Sheet`, to keep the look identical.
+- **Not added yet:** Motion, sonner and Playwright. They're not needed by anything built so far; add them when a feature needs them.
+- **Gated download link:** MailerLite stores the full `download_url` instead of a bare token, so the email template doesn't need to know the URL format.
+- **Signup rate limit:** a Workers rate-limiting binding (`SIGNUP_RATE_LIMITER`, 5 requests/min per IP) runs in front of Turnstile.
+
 ## Hosting decision: Cloudflare
 
 | Role | Provider |
@@ -69,8 +96,8 @@ Browser ──► chernyakov-coaching.com (Cloudflare DNS, GoDaddy = registrar o
   - Each static file can be at most 25 MiB. The 64.9 MB unused video gets deleted anyway. Videos actually in use are 6.4 MB and 14 MB, so they fit.
 - **Gated-download flow (no webhook needed):**
   1. `POST /api/signup` checks the Turnstile captcha.
-  2. It creates a MailerLite subscriber (double opt-in, group = the worksheet group) with a custom field `download_token`. The token is an HMAC of slug + email + expiry, valid 7 days.
-  3. Only after the person confirms their email does the MailerLite automation ("joins group" trigger) send the email with `https://chernyakov-coaching.com/api/downloads/unstuck?t={$download_token}`.
+  2. It creates a MailerLite subscriber (double opt-in, group = the worksheet group) with a custom field `download_url`: the full link with a token that is an HMAC of slug + expiry, valid `DOWNLOAD_LINK_TTL_DAYS` (default 14).
+  3. Only after the person confirms their email does the MailerLite automation ("joins group" trigger) send the email with the link `{$download_url}` (`https://chernyakov-coaching.com/api/downloads/unstuck?t=<token>`).
   4. The Worker checks the token and streams the PDF from the private R2 bucket.
 - **Rendering:** React Router v7 framework mode with `ssr: false` and every marketing route prerendered to static HTML. SEO and social previews stay as good as today, and React takes over in the browser for the interactive parts.
 
@@ -157,7 +184,7 @@ Shared types come from Hono RPC: the API exports `AppType`, and the web app call
 - [ ] `POST /api/signup`:
   - validates `{email, consentEmail:true, consentNewsletter:boolean, turnstileToken, resource:"unstuck"}` with zod;
   - verifies Turnstile;
-  - upserts the MailerLite subscriber (group, double opt-in, `download_token`), adding the newsletter group only if consented;
+  - upserts the MailerLite subscriber (group, double opt-in, `download_url`), adding the newsletter group only if consented;
   - maps MailerLite errors to 4xx/5xx with readable messages.
 - [ ] `GET /api/downloads/:slug`: checks the HMAC and expiry with a constant-time compare, then streams from R2 with `Content-Disposition: attachment`. Bad or expired tokens get a 403 and a link back to `/guide/`.
 - [ ] `env.ts` Bindings type for the secrets and vars listed under "Secrets handling"; `.dev.vars.example` with the names only.

@@ -1,0 +1,29 @@
+/*
+ * Layer order: Tailwind theme → original site styles → Tailwind utilities.
+ * Tailwind's preflight reset is intentionally not imported so the ported site styles render
+ * exactly as before; utilities still win over site styles because they sit in a later layer.
+ */
+@layer theme, base, components, utilities;
+
+@import "tailwindcss/theme.css" layer(theme);
+@import "./styles/site.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* Expose the site's design tokens (styles/site.css :root) to Tailwind and shadcn/ui. */
+@theme inline {
+  --color-background: var(--bg);
+  --color-surface: var(--surface);
+  --color-foreground: var(--ink);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted-foreground: var(--muted);
+  --color-border: var(--line);
+  --color-input: var(--line);
+  --color-ring: var(--accent);
+  --color-primary: var(--accent);
+  --color-primary-hover: var(--accent-hover);
+  --color-primary-foreground: #ffffff;
+  --color-accent-soft: var(--accent-soft);
+  --color-destructive: #b42318;
+  --radius-site: var(--radius);
+}
